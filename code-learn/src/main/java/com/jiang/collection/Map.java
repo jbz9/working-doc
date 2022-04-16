@@ -6,9 +6,9 @@
  * Author       : jbz
  * Copyright (c) 2019, jiang.baozi@ustcinfo.com All Rights Reserved.
  */
-package com.jiang.learn.collection;
+package com.jiang.collection;
 
-import java.util.Queue;
+import java.util.HashMap;
 
 /**
  * @author : jbz
@@ -22,6 +22,6 @@ public class Map {
      * Map
      */
     public void mapOper() {
-        Queue
+        HashMap hashMap = new HashMap(16);
     }
 }
