@@ -6,6 +6,8 @@
 
 参考：https://diguage.github.io/jdk-source-analysis
 
+​			https://visualgo.net/en
+
 存放对象的一个容器
 
 #### 1. Collection 接口
@@ -22,7 +24,9 @@
 
 `ArrayList`是`AbstractList`的子类，同时实现了`List`接口。除此之外，它还实现RandomAccess、Cloneable和Serializable三个标识型的接口。这几个接口都没有任何方法，仅作为标识表示实现类具备某项功能。`RandomAccess`表示实现类支持快速随机访问，`Cloneable`表示实现类支持克隆，具体表现为重写了`clone`方法，`java.io.Serializable`则表示支持序列化。
 
+**Constructor 构造函数**
 
+对于ArrayList，我们在new的时候，如果没有指定长度，它内部会初始化一个空数组，然后再第一次添加元素时，会扩容到10（比较size+1和10比较，取大）；如果指定了长度，就会直接实例化一个直接长度的数组
 
 **add**
 
@@ -40,31 +44,42 @@
 
 先判断给定的索引，然后直接返回处于下标的数组元素
 
-
-
 ###### （2） LinkedList
 
-底层是双向链接结构，元素是可重复的。LinkedList查找元素会麻烦一些，它需要从链表的头结点或者尾结点开始查找数据，
-
-双向链表结构：
+数据结构是双向链接结构，每个元素都一个前指针和后指针。查询数据需要从链表头开始遍历查找
 
 <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649941746331image-20201016170254152.png" style="zoom:50%;" />
 
-双向链表是由节点组成的，每个数据节点都有2个指针，一个指向前节点，一个指向后节点。
-
-类图：
+双向链表是由节点组成的，每个数据节点都有2个指针，pre和next指针
 
 <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649941841333image-20201016163347919.png" style="zoom:50%;" />
 
-LinkedList是`AbstractSequentialList`的子类，实现了Cloneable、Serializable、List和Deque（队列）接口L。
+LinkedList是`AbstractSequentialList`的子类，实现了Cloneable、Serializable、List和Deque（队列）接口L
+
+
+
+**插入元素**
+
+<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16501184484991650118447742.png" style="zoom: 50%;" />
+
+
+
+**指定位置插入元素**
+
+<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16501656832011650165682748.png" style="zoom:50%;" />
+
+
 
 ###### （3） Vector
 
+| ArrayList  | Vector   |
+| ---------- | -------- |
+| 线程不安全 | 线程安全 |
+| 1.5倍扩容  | 2倍扩容  |
+
 `Vector`是`AbstractList`的子类，同时实现了`List`接口。除此之外，它还实现RandomAccess、Cloneable和Serializable三个标识型的接口。
 
-Vector也是基于数组实现的，功能上和ArrayList没有什么差别，只不过Vector的方法很多加了同步语句synchronized（see  k re na a zi），因此是线程安全的。
-
-类图
+Vector也是基于数组实现的，功能上和ArrayList没有什么差别，只不过Vector的方法很多加了同步语句synchronized（see  k re na a zi），因此是线程安全的
 
 <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649941948333image-20201017165530086.png" style="zoom:50%;" />
 
@@ -72,7 +87,7 @@ Vector也是基于数组实现的，功能上和ArrayList没有什么差别，�
 
 ###### （1） HashSet
 
-HashSet是AbstractSet的子类，实现Set接口，同时也实现了Serializable、Cloneable标识接口。它的底层是由HashMap实现的，在创建HashSet对象时，它的构造函数实际是去new了一个HashMap,在添加、删除、查找数据时它都去调用HashMap的添加和删除方法。
+HashSet是AbstractSet的子类，实现Set接口，同时也实现了Serializable、Cloneable标识接口。它的**底层是HashMap**实现的，在创建HashSet对象时，它的构造函数实际是去new了一个HashMap,在添加、删除、查找数据时它都去调用HashMap的添加和删除方法。
 
 类图
 
@@ -119,7 +134,9 @@ Map 接口
 
 #### 2. Map 接口
 
-###### （1） HashMap
+###### （1）HashMap
+
+数据结构：数组+单链表+红黑树
 
 HashMap是AbstractMap的子类，实现了Serializable、Cloneable和Map接口。它存储的数据结构是键值对的形式，它的键不能够重复，并且允许存储null值和null的key，内部存储的元素是无序的，它也是非线程安全的，即同一个时刻有多个线程同时写HashMap，会造成数据不一致。
 
@@ -135,19 +152,59 @@ HashMap添加数据的流程：
 
 <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649942339346Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6.png" style="zoom: 67%;" />
 
-为什么使用红黑树？
+<img src="D:\软件\Markdown\typora-user-images\image-20220417180428063.png" alt="image-20220417180428063" style="zoom:67%;" />
+
+&运算和取模运算
+
+位运算规则：
+
+| 符号 | 描述       | 运算规则                                                     |
+| ---- | ---------- | ------------------------------------------------------------ |
+| &    | 与         | 两个位都为1时，结果才为1                                     |
+| \|   | 或         | 两个位都为0时，结果才为0                                     |
+| ^    | 异或       | 两个位相同为0，相异为1                                       |
+| ~    | 取反       | 0变1，1变0                                                   |
+| <<   | 左移       | 各二进位全部左移若干位，高位丢弃，低位补0                    |
+| >>   | 右移       | 各二进位全部右移若干位，对无符号数，高位补0，有符号数，各编译器处理方法不一样，有的补符号位（算术右移），有的补0（逻辑右移） |
+| >>>  | 吴符号右移 |                                                              |
+
+- 举例：3 << 2
+  将数字 3 左移 2 位，将 3 转换为二进制数字:`0000 0000 0000 0000 0000 0000 0000 0011`，然后把该数字高位 (左侧) 的两个零移出，其他的数字都朝左平移 2 位，最后在低位 (右侧) 的两个空位补零。则得到的最终结果是 `0000 0000 0000 0000 0000 0000 0000 1100`，则转换为十进制是 12。
+- `>>`: 右移运算符
+  举例：11 >> 2
+  则是将数字 11 右移 2 位，11 的二进制形式为:`0000 0000 0000 0000 0000 0000 0000 1011`，然后把低位的最后两个数字移出，因为该数字是正数，所以在高位补零。则得到的最终结果是 `0000 0000 0000 0000 0000 0000 0000 0010`。转换为十进制是 3。
+
+**取模运算**
+
+取模运算： Math.floorMod(10, -3)  结果为-2 运算结果和-3方向一致
+
+余数运算：返回余数 10 % -3 结果为-1 运算结果和10方向一致
+
+**为什么使用红黑树？**
 
 红黑树的查找效率是非常的高，查找效率会从链表的o(n)降低为o(logn)。
 
-为什么一开始不使用红黑树？
+**为什么一开始不使用红黑树？**
 
 红黑树比较复杂，在链表节点不多的情况下，没有必要一开始就使用红黑树；HashMap 频繁的扩容，会造成底部红黑树不断的进行拆分和重组，这是非常耗时的。因此，也就是链表长度比较长的时候转变成红黑树才会显著提高效率。
 
-HashMap中hash函数是如何实现的？
+**HashMap中hash函数是如何实现？**
 
-key的hash值 异或 hash值高位右移16位 
+①先计算key的哈希值
 
-HashMap是如何扩容的？
+②然后哈希值无符号右移16位
+
+③右移后的值再和哈希值进行异或运算
+
+```java
+(h = key.hashCode()) ^ (h >>> 16)
+```
+
+**好处**
+
+高效率，减少哈希碰撞
+
+**HashMap是如何扩容的？**
 
 第一次添加元素的时候，它会进行扩容，初始容量扩为16，负载因子是0.75，也就是扩容的阈值是12,；之后扩容的话，每次扩容的容量和阈值都是之前的2倍。创建一个容量是原来2倍的节点数组，然后把原来数组中的元素经过重新散列，再加入到新的数组中。
 
@@ -171,421 +228,19 @@ HashMap是如何get取值？
 
 * 是一种自平衡的二叉树
 
-###### （2）TreeMap
+###### （2)  ConcurrentHashMap
+
+相对比HashMap，是线程安全的。
+
+###### （3）TreeMap
 
 TreeMap是AbstractMap的子类，实现了序列接口、Cloneable、NavigableMap接口。底层数据结构是红黑树，储存的是有序的key-value集合。
 
 <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649942464335image-20201020171338640.png" style="zoom:50%;" />
 
-### 二. 数据结构
 
-#### 时间、空间复杂度
 
-#### 1.  二叉查找树
-
-它有一个根节点，每个节点下面只能有2个节点，左节点的值要小于父节点，右节点的值要大于父节点。
-
-* 插入节点：从根节点开始往下查找，如果元素大于比较的节点时，放到右侧，如果小于节点时，放到左侧，这样一直往下查找。 依次插入节点[100,50,200,80,300,10]
-
-  <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16499424963351601970-20190803091400407-1322764832.gif" style="zoom: 67%;" />
-
-  * 查找节点：从根节点往下查找，当查找的元素大于比较的元素时，向右查找，当查找的元素小于比较的元素时，向左侧查找，这样依次往下查找，直到找到。
-
-    <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16499425363351601970-20190803110643308-509746032.gif" style="zoom: 67%;" />
-
-* 删除节点：首次需要查找到节点，然后进行删除操作，删除的节点有几种情况：
-
-  * 删除的节点有2个子节点
-
-    在删除节点的右树上查找到最小节点，即从右子树一直往左查找，直到null，然后用这个节点去替换删除的节点。
-
-    <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16499425643381601970-20190803111731338-1224090242.gif" style="zoom: 67%;" />
-
-  * 删除的节点有1个子节点
-
-    将它的父节点指向它的子节点，然后删除它
-
-    <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16499426323391601970-20190803111834308-2070132039.gif" style="zoom:67%;" />
-
-  * 删除的节点有没有子节点：直接删除这个节点
-
-    <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16499427203421601970-20190803111948176-1042337598.gif" style="zoom:50%;" />
-
-* 缺点：二叉树不是平衡树，可能会导致数据偏向某一侧，变成类似链表的结构。这种不平衡导致树高增加，导致查找和插入的效率变慢。
-
-  <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16499427543351601970-20190803112059750-1915207427.gif" style="zoom:50%;" />
-
-  
-
-#### 2. 红黑树（red black tree）
-
-它是一个平衡的二叉树，它遵守一系列规则，来保证每个节点下的左侧和右侧数据大致相同（最长路径也不会超过最短路径的2倍）。
-
-红黑树的规则：
-
-* 每个节点颜色不是红色就是黑色
-
-* 根节点颜色是黑色
-
-* 2个红节点不能相邻，即红节点的子节点一定是黑色，而不能是红色
-
-* 每个叶子节点（null 节点，凑数的）一定是黑色
-
-* 从任意节点 到 叶子节点，每条路径上 包含的 黑色节点 数量相同
-
-  例如：红黑树 - 依次插入节点[100,200,300,400,500,600,700,800]
-
-  <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16499427963351601970-20190803113549962-1113334054.gif" style="zoom:50%;" />
-
-旋转和变色
-
-如果新插入、删除元素导致了红黑树规则被破坏，那么就需要调整红黑树来保持平衡
-
-* 变色：改变节点颜色，红变黑，黑变红
-
-* 旋转：改变节点位置，包含左旋和右旋
-
-  * 左旋：向左旋转-使自己的右子节点成为自己的父节点，而自己成为自己孩子的左节点，然后把自己孩子的左节点作为自己的右节点。  把当前节点的父指向 指向该节点的子节点，然后把该子节点的  的子节点 的 父节点 指向 该节点
-
-    <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649942837336image-20201019141218817.png" style="zoom:50%;" />
-
-  * 右旋：向右旋转-使自己的左节点成为自己的父节点，自己成为自己孩子的右节点，然后将自己孩子的右节点变成自己左节点
-
-    <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649942935336image-20201019142706092.png" style="zoom:50%;" />
-
-节点的属性：
-
-* 父节点
-* 子节点
-* 节点颜色
-
-#### 3. 哈希表
-
-哈希，一般翻译做“散列”，也有直接音译为“哈希”的，**就是把任意长度的输入，通过散列算法，变换成固定长度的输出，该输出就是散列值。**
-
-哈希表是由一块地址连续的数组空间构成的，其中每个数组都是一个链表，数组的作用在于快速寻址查找，链表的作用在于快速插入和删除元素，因此，哈希表可以被认为就是链表的数组
-
-#### 4. 队列
-
-先进先出
-
-<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649942968335image-20201022171501496.png" style="zoom:50%;" />
-
-### 三. 多线程  
-
-##### 概念
-
-**同步和异步**
-
-同步和异步用于方法时，同步方法调用一旦开始，调用方必须等到方法返回后，才能进行下一步操作；异步方法，调用方调用方法后，会立即返回一个结果，调用方可以进行下一步操作。
-
-```
-关于异步目前比较经典以及常用的实现方式就是消息队列：在不使用消息队列服务器的时候，用户的请求数据直接写入数据库，在高并发的情况下数据库压力剧增，使得响应速度变慢。但是在使用消息队列之后，用户的请求数据发送给消息队列之后立即 返回，再由消息队列的消费者进程从消息队列中获取数据，异步写入数据库。由于消息队列服务器处理速度快于数据库（消息队列也比数据库有更好的伸缩性），因此响应速度得到大幅改善。
-```
-
-多个线程同时操作实例对象中的变量，会造成非线程安全。**非线程安全**问题存在于“实例变量”中，如果是方法内部的私有变量，则不存在**非线程安全**问题，所得结果也就是**线程安全**的了。
-
-**线程阻塞**
-
-
-
-##### 什么是线程
-
-进程是系统**资源分配的最小单位**，线程**是系统进行运算调度的最小单位**，同一个进程里有多个线程，它们共享这个进程的资源
-
-1. 线程是cpu调度的最小单位，一个进程可以有多个线程  
-2. 线程和进程同样有5个阶段：新建、Runnable可运行状态、运行状态、阻塞、终止  
-    * 新建：创建一个线程对象
-    * 可运行状态：线程对象调用start()方法，进行可运行的就绪状态。等待JVM的调用，什么时候运行（run方法），是由系统决定的
-    * 运行状态：就绪状态的线程，执行run()方法，获取cpu资源，此时线程就处于运行状态
-    * 阻塞状态：线程暂时放弃了CPU的使用权，当线程执行睡眠（sleep）、挂起（suspend）这些方法之后，线程失去了所占用的资源，那么它就从运行状态进行了阻塞状态。它可以重新进入到就绪状态，阻塞的情况分为3种：
-      * 等待阻塞：运行状态的线程，执行wait()方法，JVM会将该线程放到**等待池**中，进入等待状态，**当有其它线程以notify()、notifyAll()、interrupt()方法唤醒该线程或者wait时间到了**则进入就绪状态
-      * 同步阻塞：线程在获取同步锁（synchronized）失败后，会进入同步阻塞的状态，**同步锁被其它线程占用**，JVM会把线程放到锁池中
-      * 其它阻塞：线程调用睡眠、挂起后，就进入阻塞状态，当随眠时间结束，它就会从阻塞状态转入就绪状态。处于【执行中】状态的线程，若遇到阻塞I/O操作，也会停止等待I/O完成，然后回到【可执行状态】
-    * 死亡状态：当run()方法执行完成之后，线程就会终结了。
-3. 进程代表是程序，多进程代表系统可以同时运行多个任务（程序）；多线程代表同一个程序中有多个顺序流执行。
-
-**方法**
-
-- `obj.wait()`是把当前线程放到obj的wait set；
-- `obj.notify()`是从obj的wait set里唤醒1个线程；
-- `obj.notifyAll()`是唤醒所有在obj的wait set里的线程。
-
-Thread和Runnable的区别？
-
-Thread是继承，Runnable是实现，如果线程类实现Runnable，它还是可以继承其它类的，而且实现Runnable，那么多个线程就可以共享一个对象了，适合多个相同线程来处理同一份资源的情况。
-
-Runnable和Callable的区别？
-
-Runnable重写的是run方法，Callable重写的是call方法，Callable执行完有返回值，Runnable没有
-
-##### 如何实现多线程
-
-1.Thread（si red ）  :继承Thread 类，重写run()方法，调用start启动线程
-
-```java
-/**
- * Project Name : develop-doc
- * File Name    : OneThread
- * Package Name : springboot.example.demo.thread
- * Date         : 2020-05-01 15:38
- * Author       : jbz
- * Copyright (c) 2019, jiang.baozi@ustcinfo.com All Rights Reserved.
- */
-package springboot.demo.thread;
-
-import lombok.SneakyThrows;
-
-/**
- * @ClassName : OneThread
- * @author : jbz
- * @Date : 2020-05-01 15:38
- * @Description :   线程
- */
-public class OneThread extends Thread {
-
-    private String name;
-
-    public OneThread(){
-    }
-
-    public OneThread(String name){
-        this.name=name;
-    }
-
-    @SneakyThrows
-    @Override
-    public void run(){
-        for (int i = 0; i < 10; i++) {
-            System.out.println(name+"执行线程"+i);
-            Thread.sleep(1);
-        }
-    }
-
-    public static void main(String[] args) {
-        OneThread oneThread = new OneThread("第一个线程");
-        OneThread oneThread2 = new OneThread("第二个线程");
-        oneThread.start();
-        oneThread2.start();
-    }
-}
-```
-
-2. Runnable：实现Runnable接口
-
-```java
-/**
- * Project Name : develop-doc
- * File Name    : OneRunnable
- * Package Name : springboot.example.demo.thread
- * Date         : 2020-05-01 16:32
- * Author       : jbz
- * Copyright (c) 2019, jiang.baozi@ustcinfo.com All Rights Reserved.
- */
-package springboot.demo.thread;
-
-/**
- * @ClassName : OneRunnable
- * @author : jbz
- * @Date : 2020-05-01 16:32
- * @Description :
- */
-public class OneRunnable implements Runnable {
-
-    @Override
-    public void run() {
-        for (int i = 0; i < 10; i++) {
-            System.out.println("线程运行"+i);
-        }
-    }
-
-    public static void main(String[] args) {
-        //创建线程，指定线程任务
-        Thread thread = new Thread(new OneRunnable());
-        thread.start();
-    }
-}
-```
-
-3.匿名类创建线程
-
-```
-/**
- * Project Name : develop-doc
- * File Name    : OneLambdaThread
- * Package Name : springboot.example.demo.thread
- * Date         : 2020-05-01 17:31
- * Author       : jbz
- * Copyright (c) 2019, jiang.baozi@ustcinfo.com All Rights Reserved.
- */
-package springboot.example.demo.thread;
-
-/**
- * @ClassName : OneLambdaThread
- * @author : jbz
- * @Date : 2020-05-01 17:31
- * @Description :   java8  Lambda写法
- */
-public class OneLambdaThread {
-
-    public static void main(String[] args) {
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("匿名类创建线程");
-
-            }
-        });
-        thread.start();
-
-        Thread thread1 = new Thread( () -> {
-            System.out.println("Lambda创建线程");
-        });
-        thread1.start();
-    }
-
-}
-```
-4.Callable：带返回值的线程
-
-```java
-/**
- * Project Name : develop-doc
- * File Name    : OneCallable
- * Package Name : springboot.example.demo.thread
- * Date         : 2020-05-01 20:40
- * Author       : jbz
- * Copyright (c) 2019, jiang.baozi@ustcinfo.com All Rights Reserved.
- */
-package springboot.demo.thread;
-
-import lombok.SneakyThrows;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-
-/**
- * @ClassName : OneCallable
- * @author : jbz
- * @Date : 2020-05-01 20:40
- * @Description :   
- */
-public class OneCallable implements Callable<String> {
-    @Override
-    public String call() throws Exception {
-        System.out.println("执行线程");
-        return "执行结果：执行成功";
-    }
-
-    @SneakyThrows
-    public static void main(String[] args) {
-        OneCallable oneCallable = new OneCallable();
-        FutureTask<String> futureTask = new FutureTask(oneCallable);
-        Thread thread = new Thread(futureTask);
-        thread.start();
-        //获取线程执行结果
-        String result = futureTask.get();
-        System.out.println(result);
-
-    }
-}
-```
-
-##### 线程优先级
-
-优先级是1-10，最低是1，最高是10，优先级越高，线程获取运行的机会就越多，默认是5。
-
-##### Java锁
-
-https://xiaomi-info.github.io/2020/03/24/synchronized/
-
-有哪些锁：
-
-* 公平锁/非公平锁
-
-  公平锁指多个线程按照申请锁的顺序来依次获取到锁
-
-  非公平锁即多个线程获取到锁的顺序，并不是安装它们申请锁的顺序
-
-* 可重入锁
-
-  又名递归锁
-
-  ```javascript
-  synchronized void setA() throws Exception{
-      Thread.sleep(1000);
-      setB();
-  }
-  
-  synchronized void setB() throws Exception{
-      Thread.sleep(1000);
-  }
-  ```
-
-* 独享锁/共享锁
-
-  独享锁：该锁一次只能被一个线程所持有
-
-  共享锁：该锁可以被多个线程所持有
-
-* 互斥锁/读写锁
-
-  上面讲的独享锁/共享锁就是一种广义的说法，互斥锁/读写锁就是具体的实现。
-
-* 乐观锁/悲观锁
-
-* 分段锁
-
-  是一种锁的设计，不是具体的锁
-
-* 偏向锁/重量级锁/轻量级锁
-
-  指的是锁的状态。
-
-  偏向锁是指的是一段同步代码一直被一个线程所访问，那么该线程会自动获取锁。降低获取锁的代价。
-
-  轻量级锁是指当锁是偏向锁的时候，被另一个线程所访问，偏向锁就会升级为轻量级锁，其他线程会通过自旋的形式尝试获取锁，不阻塞，提高性能。
-
-  重量级锁是指当锁为轻量级锁的时候，另一个线程虽然是自旋，但自旋不会一直持续下去，当自旋一定次数的时候，还没有获取到锁，就会进入阻塞，该锁膨胀为重量级锁。重量级锁会让其他申请的线程进入阻塞，性能降低。
-
-* 自旋锁
-
-  当线程没有获得锁时，不是直接进入同步阻塞的状态，而是执行一个空循环，默认10次，这样是为了减少是为了减少线程被挂起的机率。
-
-**死锁**
-
-线程之间相互等着对方释放资源，而自己的资源又不释放给别人，这种情况就是死锁。
-
-产生死锁的四个条件：
-
-* 互斥：资源被一个线程使用后，其它线程就不能再使用了
-* 不能抢占：一个线程不能抢占另一个线程的资源，只能等这个线程自己放开资源
-* 请求和保持：线程在请求其它资源时，对自身占用的资源也不放开
-* 循环等待：比如，A抢占了B的资源，B抢占了C的资源，C又抢占了A的资源，形成了闭环。
-
-解决死锁问题的方法是：一种是用synchronized，一种是用Lock显式锁
-
-在Java里任何一个对象都可以作为锁，当一个线程访问同步代码块时，它首先要得到锁，才能执行同步代码块，当退出时，必须需要释放锁。
-
-##### 线程池
-
-1. 什么是线程池     
-
-   管理线程的池子，当有任务需要处理的时候，可以从线程池中取出线程来处理，处理完成后，线程也不会销毁，降低频繁创建创建、销毁线程的消耗，提高资源使用率和响应速度。
-
-* **帮助我们管理线程资源：**线程实际也是一个对象，创建一个对象，需要经过类加载过程，销毁一个对象，需要走GC垃圾回收流程，都是需要资源开销的。 
-* **提高响应速度**：执行任务时，可以直接去线程池中拿线程，而不需要重新去创建一条线程执行，提高了响应速度。
-* **重复利用**：线程使用完毕，不进行销毁，而是放入线程池中，减少了线程创建和销毁的次数，达到重复利用的效果，节省资源。
-
-2. 使用
-
-* **核心线程**：线程池新建线程的时候，`当前线程总数< corePoolSize`，新建的线程即为核心线程，没有任务的线程
-* **非核心线程**：线程池新建线程的时候，`当前线程总数< corePoolSize`，新建的线程即为核心线程。
-* **最大线程数**：核心线程数+非核心线程数，**corePoolSize** 
-* **存活时间**：非核心线程，空闲时存活的时间
-* 阻塞队列：等待执行的任务
-* **workQueue**：
+* 
 
 ### JVM
 
@@ -1155,26 +810,6 @@ package org.apache.commons.io;
 FileUtils.copyDirectory(sourceDirectory, destinationDirectory);
 ```
 
-#### maven
-
-##### 常见配置
-
-```java
-<dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-core</artifactId>
-    <version>2.10.0</version>
-    <exclusions>
-        <exclusion>
-        <artifactId>log4j-api</artifactId>
-        <groupId>org.apache.logging.log4j</groupId>
-        </exclusion>
-    </exclusions>
-</dependency>
-  //exclusions 不下载 log4j-api jar包
-log4j-core本身是依赖了log4j-api的，但是因为一些其他的模块也依赖了log4j-api，并且两个log4j-api版本不同，所以我们使用<exclusion>标签排除掉log4j-core所依赖的log4j-api，这样Maven就不会下载log4j-core所依赖的log4j-api了，也就保证了我们的项目中只有一个版本的log4j-api。
-```
-
 #### 并发
 
 优点：提高执行效率，由于I/O等情况阻塞，单个任务并不能充分利用CPU时间。java中多线程是抢占式的，这意味着一个任务随时可能中断并切换到其它任务。通过并发编程的形式可以将多核CPU的计算能力发挥到极致，性能得到提升。
@@ -1200,13 +835,5 @@ log4j-core本身是依赖了log4j-api的，但是因为一些其他的模块也�
 ##### 异常类
 
 <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1649943125335image-20200203151301191.png" style="zoom:50%;" />
-
-#### JSON
-
-JSON是一种简单数据格式，它有三种数据结构：
-
-* 键值对—（key-value）
-* 对象—object
-* 数组—arrays
 
 

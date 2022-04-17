@@ -18,10 +18,26 @@ import java.util.HashMap;
  */
 public class Map {
 
+    public Map() {
+    }
+
     /**
      * Map
      */
-    public void mapOper() {
-        HashMap hashMap = new HashMap(16);
+    public static void mapOper() {
+        HashMap<String, String> map1 = new HashMap<String, String>(16);
+        int hashCode = "admin".hashCode();
+        System.out.println(hashCode);
+        System.out.println(Math.floorMod(hashCode,2));
+        System.out.println(hashCode % 2);
+        System.out.println(Math.floorMod(10, -3));
+        System.out.println(2 >>> 1);
+        System.out.println(2 >>> 2);
+        System.out.println(2 >>> 3);
+        map1.put("a", "1");
+    }
+
+    public static void main(String[] args) {
+        mapOper();
     }
 }
