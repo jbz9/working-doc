@@ -4,7 +4,6 @@
  * Package Name : com.jiang.learn.collection
  * Date         : 2022-04-16 10:53
  * Author       : jbz
- * Copyright (c) 2019, jiang.baozi@ustcinfo.com All Rights Reserved.
  */
 package com.jiang.collection;
 
