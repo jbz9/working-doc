@@ -20,6 +20,7 @@ public class Hello {
     }
 
     public void hello(String name) {
+        Hello hello = new Hello();
         System.out.println("hello: " + name);
     }
 }

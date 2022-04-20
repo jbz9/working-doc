@@ -16,6 +16,10 @@
    * 死亡状态：当run()方法执行完成之后，线程就会终结了。
 3. 进程代表是程序，多进程代表系统可以同时运行多个任务（程序）；多线程代表同一个程序中有多个顺序流执行。
 
+#### 线程5个状态
+
+<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16503725179881650372517519.png" style="zoom:67%;" />
+
 ### 二. 同步和异步
 
 同步和异步用于方法时，同步方法调用一旦开始，调用方必须等到方法返回后，才能进行下一步操作；异步方法，调用方调用方法后，会立即返回一个结果，调用方可以进行下一步操作。
@@ -305,3 +309,61 @@ https://xiaomi-info.github.io/2020/03/24/synchronized/
 * **帮助我们管理线程资源：**线程实际也是一个对象，创建一个对象，需要经过类加载过程，销毁一个对象，需要走GC垃圾回收流程，都是需要资源开销的。 
 * **提高响应速度**：执行任务时，可以直接去线程池中拿线程，而不需要重新去创建一条线程执行，提高了响应速度。
 * **重复利用**：线程使用完毕，不进行销毁，而是放入线程池中，减少了线程创建和销毁的次数，达到重复利用的效果，节省资源。
+
+#### 2. 线程池工作流程
+
+![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1650373495002Java%E7%BA%BF%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E6%B1%A0.drawio.png)
+
+
+
+#### 3.线程池使用
+
+创建线程池使用**ThreadPoolExecutor**类，有6个参数，分为corePoolSize 核心线程数、最大线程数、存活时间、时间单位、缓冲队列（已提交但是没有执行的任务放在这里）和拒绝策略。
+
+```java
+public ThreadPoolExecutor(int corePoolSize,
+                              int maximumPoolSize,
+                              long keepAliveTime,
+                              TimeUnit unit,
+                              BlockingQueue<Runnable> workQueue,
+                              RejectedExecutionHandler handler) {
+        this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+             Executors.defaultThreadFactory(), handler);
+    }    
+
+
+public void creatThread() {
+        /**
+         * 手动创建 线程池
+         *         public ThreadPoolExecutor(int corePoolSize, 线程池中的核心线程数
+         *         int maximumPoolSize, 线程池中的最大线程数
+         *         long keepAliveTime, 存活时间，当线程池数量超过核心线程数时，多余的空闲线程存活的时间，
+         *                             即：这些线程多久被销毁。
+         *         TimeUnit unit,      时间单位
+         *         BlockingQueue<Runnable> workQueue,    等待队列，线程池中的线程数超过核心线程数时，
+         *                                               任务将放在等待队列，它是一个BlockingQueue类型的对象
+         *         ThreadFactory threadFactory,    线程工厂
+         *         RejectedExecutionHandler handler) 拒绝策略，当线程池和等待队列都满了之后，需要通过该对象的回调
+         *         函数进行回调处理
+         */
+
+        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder()
+                .setNameFormat("demo-pool-%d").build();
+        ExecutorService singleThreadPool = new ThreadPoolExecutor(1, 1,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+
+        singleThreadPool.execute(() -> System.out.println(Thread.currentThread().getName()));
+        singleThreadPool.shutdown();
+
+    }
+```
+
+##### 1.1 阻塞队列
+
+##### 1.2 拒绝策略
+
+* CallRunsPolicy:
+* AbortPolicy:
+* DiscardPolicy:
+* DiscardOldestPolicy:
