@@ -5,7 +5,7 @@
  * Date         : 2022-04-19 16:40
  * Author       : jbz
  */
-package com.jiang.loader;
+package com.jiang.learn.loader;
 
 import java.net.URL;
 import java.net.URLClassLoader;

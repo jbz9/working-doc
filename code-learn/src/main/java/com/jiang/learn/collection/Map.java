@@ -5,7 +5,7 @@
  * Date         : 2022-04-13 22:38
  * Author       : jbz
  */
-package com.jiang.collection;
+package com.jiang.learn.collection;
 
 import java.util.HashMap;
 

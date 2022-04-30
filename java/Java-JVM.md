@@ -93,7 +93,7 @@ Java栈中存放的是一个个的栈帧，每个栈帧对应一个被调用的�
  * Date         : 2022-04-19 16:40
  * Author       : jbz
  */
-package com.jiang.loader;
+package com.jiang.learn.loader;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -188,7 +188,7 @@ Hello.java
  * Date         : 2022-04-18 23:14
  * Author       : jbz
  */
-package com.jiang.collection;
+package com.jiang.learn.collection;
 
 /**
  * @author : jbz

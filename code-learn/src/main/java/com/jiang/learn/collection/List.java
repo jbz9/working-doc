@@ -5,13 +5,12 @@
  * Date         : 2022-04-16 10:53
  * Author       : jbz
  */
-package com.jiang.collection;
+package com.jiang.learn.collection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 /**
  * @author : jbz

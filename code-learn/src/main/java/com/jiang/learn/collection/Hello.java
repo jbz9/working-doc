@@ -6,7 +6,7 @@
  * Author       : jbz
  * Copyright (c) 2019, jiang.baozi@ustcinfo.com All Rights Reserved.
  */
-package com.jiang.collection;
+package com.jiang.learn.collection;
 
 /**
  * @author : jbz

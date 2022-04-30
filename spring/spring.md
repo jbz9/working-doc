@@ -42,11 +42,11 @@ Rest架构：前端请求后端接口，返回JSON的这样一种REST架构
 
 ### 4. IOC控制反转和DI注入
 
-Spring的IOC容器是基于IOC控制反转思想，通过依赖注入DI的实现方式来设计的，它是将本来由我们创建对象的控制权，移交给了容器进行创建和管理，容器通过读取配置元数据去初始化实例，配置元数据可以使用XML、注解（Componen/Configuration 将类注册到bean容器）或者Java类的方式进行配置，
+Spring的IOC容器是基于IOC控制反转思想，通过依赖注入的方式来实现的，它是将本来由我们创建对象的控制权，移交给了容器进行创建和管理，容器通过读取配置元数据去初始化实例，配置元数据可以使用XML、注解（Componen/Configuration 将类注册到bean容器）或者Java类的方式进行配置，
 
-将手动创建的对象的控制权交给了spring容器，如果要使用某个对象，只需要在容器中获取，而不需要自己创建。BeanFactory和ApplicationContext是Spring的两大核心接口，
-而其中ApplicationContext是BeanFactory的子接口。它们都可以当做Spring的容器，
-Spring容器是生成Bean实例的工厂，并管理容器中的Bean。
+将手动创建的对象的控制权交给了spring容器，如果要使用某个对象，只需要在容器中获取，而不需要自己创建。BeanFactory和ApplicationContext是Spring的两大核心接口，而其中ApplicationContext是BeanFactory的子接口。它们都可以当做Spring的容器，Spring容器是生成Bean实例的工厂，并管理容器中的Bean。
+
+通俗来说就是**IoC控制反转是一种设计思想，DI是它的实现方式**
 
 spring容器读取了配置元数据之后，通过java反射创建类并注入其依赖类。在对象初始化的时候将数据注入到对象中，或者是将对象的引用注入到 另一个需要依赖它的类。
 
@@ -281,4 +281,8 @@ public class BeanConfiguration {}
 private AtomicInteger c;
 
 ```
+
+## 3. 常见问题
+
+### 1.  Bean实例化
 
