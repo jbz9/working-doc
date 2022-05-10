@@ -4,6 +4,8 @@
 
 https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html
 
+回答方式：总-分
+
 ## 1. 概述
 
 Spring最开始指的是spring-framework工程，之后又出来了spring-boot工程。spring-boot更倾向于约定而不是配置
@@ -229,9 +231,17 @@ spring主动创建被调用类的对象，然后把这个对象注入到我们�
 * 实例工厂
 * 静态工厂
 
-### 7.  切面编程
+### 7.  AOP
 
-动态代理
+Aspect Oriented Programming。运行时编译织入
+
+总：AOP是面向切面编程，主要是用在解耦，把非业务模块和业务模块进行解耦，使用比较多的就是日志记录和权限验证。
+
+分：然后在Spring 里面，我们一般是用Aspect注解定义一个切面类，在切面类里面定义它的切入点ponitCut，以及Advice通知方式，比如说前置、后置、异常、环绕和return。spring内部是使用JDK动态代理和cglib两种方式，是在bean初始化完成之后，在bean
+
+![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1652066951324Spring-AOP.drawio.png)
+
+
 
 相当于一个拦截器，可以拦截一些过程，比如，AOP可以拦截一个执行的方法，可以在方法执行前后添加一些额外的事件。比如日志管理，日志模块就是一个切面，它可以切入到需要其他其需要输出日志的模块，切入点就是需要输入日志的地方
 
@@ -239,50 +249,109 @@ spring主动创建被调用类的对象，然后把这个对象注入到我们�
 
 - **切面(Aspect)** – 一些横跨多个类的公共模块，如日志、安全、事务等。简单地说，日志模块就是一个切面。
 - **连接点(Joint Point)** – 目标类中插入代码的地方。连接点可以是方法、异常、字段，连接点处的切面代码会在方法执行、异常抛出、字段修改时触发执行。
-- **建议(Advice)** – 在连接点插入的实际代码(即切面的方法)，有5种不同类型（后面介绍）。
-- **切点(Pointcut)** – 定义了连接点的条件，一般通过正则表达式。例如，可以定义所有以`loadUser`开头的方法作为连接点，插入日志代码。
+- **通知(Advice)** – 在连接点插入的实际代码(即切面的方法)，有5种不同类型（后面介绍）。
+- **切入点(Pointcut)** – 定义了连接点的条件，一般通过正则表达式。例如，可以定义所有以`loadUser`开头的方法作为连接点，插入日志代码。
 
-**能够通知的种类：**
 
-- **before** – 在方法之前运行建议（插入的代码）
-- **after** – 不管方法是否成功执行，在方法之后运行插入建议（插入的代码）
-- **after-returning** – 当方法执行成功，在方法之后运行建议（插入的代码）
-- **after-throwing** – 仅在方法抛出异常后运行建议（插入的代码）
-- **around** – 在方法被调用之前和之后运行建议（插入的代码）
 
-bean就是普通的java，由Spring IoC容器实例化。
+##### JDK动态代理和CGlib代理
 
-* 使用xml配置
-* 使用@Configuration配置
-* 隐式的bean发现机制和自动装配
+JDK代理是接口代理
 
-**bean装配**
+##### 为什么JDK动态代理，必须是接口
 
-```jade
-// 注册
-@Configuration
-public class BeanConfiguration {
-    @Bean
-    public AtomicInteger getAtomicIntegerBean() {
-        return new AtomicInteger();
-    }
-}
-//或者 
-@Componment
-public class Foo{}
-
-// 扫描
-@ComponentScan(basePackages={})
-@Configuration
-public class BeanConfiguration {}
-
-//装配AtomicInteger的实例
-@Autowired
-private AtomicInteger c;
-
-```
+这个是因为JDK生成的代理类继承了JDK反射包里Proxy类，Java单继承，所以只能代理接口，让代理类实现我们的真实接口。
 
 ## 3. 常见问题
 
-### 1.  Bean实例化
+### Spring Bean
+
+#### 什么是bean？
+
+bean是由IOC容器创建、管理的对象
+
+#### bean的生命周期
+
+总：bean是由IOC进行实例化创建的，所以它的生命周期也是由容器进行控制的。对于普通的对象，它的生命周期就是创建，如果之后不再使用的话，就有java虚拟机通过垃圾回收算法进行销毁。而bean的生命周期分为几个阶段：
+
+分：
+
+![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1652078509243Spring-bean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.drawio.png)
+
+
+
+#### 申明bean的注解有哪些
+
+Component、service、controller、repository
+
+
+
+
+
+
+
+###  IOC源码
+
+IOC是Inversion of Control，是程序解耦的一种设计思想，将程序里bean的创建交给了Spring容器。使用Autowried、Resource 进行属性注入，内部使用`populateBean`方法来实现，IOC的整个流程可以分为几块，
+
+
+
+
+
+### 循环依赖
+
+总：循环依赖就是多个bean循环引用，形成闭环，导致死循环，spring使用了三级缓存来解决循环依赖
+
+分：
+
+spring解决循环依赖的核心是`提前暴露bean`,它使用3个Map用来做缓存，一级缓存用来存放已经实例化和初始化的bean，二级缓存存放已经实例化但是初始化的bean，三次缓存存放bean对应的一个beanfactory，spring会依次从这三个缓存里获取这个bean，直到获取到bean。其实使用二级缓存，就可以解决循环引用里死循环的问题，但是没有办法解决AOP代理的问题，所以spring引入了第三级缓存，提前AOP的动作来解决AOP代理对象的问题。
+
+情景：假设A、B两个service相互引用，**单例**Bean中，属性互相引用
+
+步骤：
+
+假设先创建A
+
+① 对A进行实例化，把A放入二级缓存
+
+②填充Aservice的B属性
+
+​	（1）去一级缓存、二级缓存里面寻找，肯定找不到B
+
+​      (2）那么使用beanFactory去创建serviceB
+
+​      (3) 去实例化Bservice，完成之后吧Bservice放入到二级缓存中
+
+​      (4）去填充Bservice的属性A，这时候能够从二级缓存里面找到Aservice，所以填充成功
+
+​		 AOP代理对象的问题出在这里，因为此时A的AOP代理对象还没有创建，所以填充的是A的真实对象，所以这		 里去判断了如果A正在创建（代表循环依赖）而且需要AOP的话，那么提前把A进行AOP，获取A的代理对象
+
+​      (5)  然后Bean进行初始化，完成之后bean创建成功，那么把B加入到单例池一级缓存中，然后把二级缓存里的B    		删除
+
+③ 初始化Aservice，（如果有AOP，此处进行AOP）完成之后加入到单例池（如果A有AOP代理对象，放入代理对象）
+
+| 名称                  | 描述                                                         |
+| --------------------- | ------------------------------------------------------------ |
+| singletonObjects      | 一级缓存，存放已经实例化、初始化完成的Bean，成品库           |
+| earlySingletonObjects | 二级缓存，用于存放已经实例化,但`未初始化的Bean`，半成品库    |
+| singletonFactories    | 三级缓存，存放该Bean的BeanFactory,当加载一个Bean会先将该Bean包装为BeanFactory放入三级缓存（使用beanfactory去创建一个bean），工厂库 |
+
+```java
+public class AccountController {
+    private static final Logger LOG = LoggerFactory.getLogger(AccountController.class);
+
+    private AccountService accountService;
+
+    // 构造函数依赖注入
+    // 不管是否设置为required为true，都会出现循环依赖问题
+    @Autowire
+    // @Autowired(required = false)
+    public AccountController(AccountService accountService) {
+        this.accountService = accountService;
+    }
+    
+}
+```
+
+
 

@@ -1,0 +1,11 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /learn
+
+#\u6570\u636E\u5E93\u5F00\u5173
+database:
+  redis:
+    enable: false
+  mysql:
+    enable: true

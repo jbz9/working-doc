@@ -8,6 +8,7 @@
 package com.jiang.learn.spring.service;
 
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 /**
  * @ClassName : Role
@@ -15,6 +16,6 @@ import org.springframework.stereotype.Component;
  * @Date : 2022-04-25 22:26
  * @Description :   
  */
-@Component
+@Component()
 public class RoleService {
 }
