@@ -32,5 +32,6 @@ public class Hello {
 
 
         ApplicationContext con = new ClassPathXmlApplicationContext("bean.xml");
+        con.getBean("");
     }
 }

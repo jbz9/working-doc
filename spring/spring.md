@@ -8,11 +8,11 @@ https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/
 
 ## 1. 概述
 
-Spring最开始指的是spring-framework工程，之后又出来了spring-boot工程。spring-boot更倾向于约定而不是配置
+Spring最开始指的是spring-framework工程，之后又出来了spring-boot工程。spring-boot是约定大于配置
 
 ## 2. 基础
 
-### 1. 什么是spring
+### **什么是spring**
 
 它是一个轻量级的开源框架，能够提高开发效率，简化开发，它本身是模块化的，它有2个核心特性，一个依赖注入，一个是AOP切面编程。
 
@@ -24,7 +24,7 @@ Spring最开始指的是spring-framework工程，之后又出来了spring-boot�
 
 Rest架构：前端请求后端接口，返回JSON的这样一种REST架构
 
-### 2. **spring模块**
+### **spring模块**
 
 - Spring Core 核心模块 IOC容器, 解决对象创建及依赖关系
 - Spring Web  Spring对web模块的支持。
@@ -37,18 +37,26 @@ Rest架构：前端请求后端接口，返回JSON的这样一种REST架构
   - 也可以使用spring的对hibernate操作的封装
 - Spring AOP  切面编程
 
-### 3. spring的优点
+### **spring的优点**
 
 * 低耦合、低侵入：各个模块组件之间低耦合，每一个都可以单独使用
-* 方便集成其它框架：比如mybatis、Hibernate、Quartz等
+* 生态成熟：spring本身集成的第三方库就比较多，另外想要扩展其它库，也是比较方便的
 
-### 4. IOC控制反转和DI注入
+### **IOC和DI**
 
-Spring的IOC容器是基于IOC控制反转思想，通过依赖注入的方式来实现的，它是将本来由我们创建对象的控制权，移交给了容器进行创建和管理，容器通过读取配置元数据去初始化实例，配置元数据可以使用XML、注解（Componen/Configuration 将类注册到bean容器）或者Java类的方式进行配置，
+IOC : Inversion of control
 
-将手动创建的对象的控制权交给了spring容器，如果要使用某个对象，只需要在容器中获取，而不需要自己创建。BeanFactory和ApplicationContext是Spring的两大核心接口，而其中ApplicationContext是BeanFactory的子接口。它们都可以当做Spring的容器，Spring容器是生成Bean实例的工厂，并管理容器中的Bean。
+DI：Dependency Injection
 
-通俗来说就是**IoC控制反转是一种设计思想，DI是它的实现方式**
+**IOC控制反转是一种设计思想，DI是它的实现方式**，它是将本来由我们创建对象的控制权，移交给了容器进行创建和管理，我们一般使用注解去注册一个bean，比如Component、service、controller、repository，还有springboot的**@Bean方法**注解。
+
+DI依赖注入：注入有Set注入、构造器注入、和autowried以及resouces注解注入，我们经常用的就是注解注入。
+
+补充：
+
+**@Bean方法注解**
+
+Spring的@Bean注解用于告诉方法，产生一个Bean对象，然后这个Bean对象交给Spring管理。产生这个Bean对象的方法Spring只会调用一次，随后这个Spring将会将这个Bean对象放在自己的IOC容器中。
 
 spring容器读取了配置元数据之后，通过java反射创建类并注入其依赖类。在对象初始化的时候将数据注入到对象中，或者是将对象的引用注入到 另一个需要依赖它的类。
 
@@ -69,8 +77,6 @@ spring容器读取了配置元数据之后，通过java反射创建类并注入�
   ann.getBeanFactory().registerSingleton("testService",new A1Service());
   ```
 
-
-
 **IOC容器初始化**
 
 IOC容器有2种：
@@ -78,7 +84,18 @@ IOC容器有2种：
 * 实现BeanFactory接口
 * 实现ApplicationContext：应用上下文
 
-### 5. 依赖注入的方式
+### **AutoWired和Resouce注入区别**
+
+AutoWired是默认按照类型注入，Resouce是默认按照名称注入，它也支持按照类型注入，AutoWried 需要和Qualifie配合才能使用名称注入
+
+1、首先去IOC容器 查找类型为 UserRepository 的bean实例对象
+2、如果查到了，且结果只有一个，那么就装载这个bean实例
+3、如果查到了，结果不止一个，那么 @Autowired就根据名称byName来查找
+3、如果找不到，则抛出异常，如果不想抛出异常，使用required=false
+
+再加上 @Qualifier
+
+### **依赖注入有哪几种方式**
 
 为对象注入值
 
@@ -207,8 +224,6 @@ public class User {
 
 **PostConstruct**作为初始化函数的一个替代,**PreDestory**作为销毁函数的一个替代
 
-### 6. IOC的实现
-
 
 
 ### 6. 核心容器（Core Container）
@@ -233,11 +248,13 @@ spring主动创建被调用类的对象，然后把这个对象注入到我们�
 
 ### 7.  AOP
 
+[Spring AOP 源码解析_Javadoop](https://javadoop.com/post/spring-aop-source)
+
 Aspect Oriented Programming。运行时编译织入
 
 总：AOP是面向切面编程，主要是用在解耦，把非业务模块和业务模块进行解耦，使用比较多的就是日志记录和权限验证。
 
-分：然后在Spring 里面，我们一般是用Aspect注解定义一个切面类，在切面类里面定义它的切入点ponitCut，以及Advice通知方式，比如说前置、后置、异常、环绕和return。spring内部是使用JDK动态代理和cglib两种方式，是在bean初始化完成之后，在bean
+分：然后在Spring 里面，我们一般是用Aspect注解定义一个切面类，在切面类里面定义它的切入点ponitCut，以及Advice通知方式，比如说前置、后置、异常、环绕和return。spring内部是使用JDK动态代理和cglib两种方式，是在bean初始化完成之后，在bean初始化`initializeBean`最后调用后置处理器beanpostprocessor，在这里判断如果有Advice,就会创建代理类，至于使用JDK还是cglib，还是看这个目标对象有没有实现接口
 
 ![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1652066951324Spring-AOP.drawio.png)
 
@@ -256,7 +273,12 @@ Aspect Oriented Programming。运行时编译织入
 
 ##### JDK动态代理和CGlib代理
 
-JDK代理是接口代理
+作用：功能增强、访问控制
+
+| JDK动态代理                                    | cglib代理                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------ |
+| 代理的只能是接口                               | 代理的是可以是类                                             |
+| 需要一个handler去实现**InvocationHandler**接口 | 基于ASM，把真实对象的class文件加载进来，然后修改字节码生成子类来实现 |
 
 ##### 为什么JDK动态代理，必须是接口
 
@@ -286,13 +308,23 @@ Component、service、controller、repository
 
 
 
+###  IOC
+
+IOC是Inversion of Control，是程序解耦的一种设计思想，将程序里bean的创建交给了Spring容器。使用Autowried、Resource 进行属性注入。
+
+IOC的整个流程可以分为几个阶段：
+
+![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16522398382211652239837376.png)
+
+#### beanfactory和applicationcontext
+
+beanfactory可以看做IOC容器，applicationcontext也可以看成一个beanfactory，因为它也实现了beanfactory这个接口
+
+![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16522364249721652236424181.png)
 
 
 
 
-###  IOC源码
-
-IOC是Inversion of Control，是程序解耦的一种设计思想，将程序里bean的创建交给了Spring容器。使用Autowried、Resource 进行属性注入，内部使用`populateBean`方法来实现，IOC的整个流程可以分为几块，
 
 
 
@@ -324,11 +356,13 @@ spring解决循环依赖的核心是`提前暴露bean`,它使用3个Map用来做
 
 ​      (4）去填充Bservice的属性A，这时候能够从二级缓存里面找到Aservice，所以填充成功
 
-​		 AOP代理对象的问题出在这里，因为此时A的AOP代理对象还没有创建，所以填充的是A的真实对象，所以这		 里去判断了如果A正在创建（代表循环依赖）而且需要AOP的话，那么提前把A进行AOP，获取A的代理对象
+​		 AOP代理对象的问题出在这里，因为此时A的AOP代理对象还没有创建，所以填充的是A的真实对象，所以这		 里去判断了如果A正在创建（代表循环依赖）而且需要AOP的话，那么提前把A进行AOP，获取A的代理对象,
+
+​		 并且把代理对象A放入到二级缓存中
 
 ​      (5)  然后Bean进行初始化，完成之后bean创建成功，那么把B加入到单例池一级缓存中，然后把二级缓存里的B    		删除
 
-③ 初始化Aservice，（如果有AOP，此处进行AOP）完成之后加入到单例池（如果A有AOP代理对象，放入代理对象）
+③ 初始化Aservice，（如果有AOP，此处进行AOP，会直接从二级缓存里面拿到代理对象A）完成之后加入到单例池（如果A有AOP代理对象，放入代理对象）
 
 | 名称                  | 描述                                                         |
 | --------------------- | ------------------------------------------------------------ |

@@ -9,6 +9,7 @@ package com.jiang.learn.db;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Component;
  * @Date : 2022-05-09 15:35
  * @Description :
  */
-@Component
+@Configuration
 @ConfigurationProperties(prefix = "database")
 @Data
 public class DBConfig {
@@ -26,6 +27,16 @@ public class DBConfig {
     private Redis redis = new Redis();
 
     private Mysql mysql = new Mysql();
+
+    @Bean
+    public Redis getRedisBean(){
+        return new Redis();
+    }
+
+    @Bean
+    public Mysql getMysqlBean(){
+        return new Mysql();
+    }
 
     @Data
     public static class Redis {
