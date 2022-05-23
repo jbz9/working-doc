@@ -259,6 +259,10 @@ B+树是由二叉树和B树演化过来的，是一个多路平衡树，二叉�
 
 ###### 1.3 事务的隔离性
 
+脏读—>不可重复度—>幻读
+
+读已提交—>可重复读—>串行化
+
 简单来说，隔离性就是`多个事务互不影响，感觉不到对方存在`，这个特性就是为了做并发控制。在多线程编程中，如果大家都读写同一块数据，那么久可能出现最终数据不一致，也就是每条线程都可能被别的线程影响了。按理说，最严格的隔离性实现就是完全感知不到其他并发事务的存在，多个并发事务无论如何调度，结果都与串行执行一样。为了达到串行效果，目前采用的方式一般是两阶段加锁（Two Phase Locking），但是读写都加锁效率非常低，读写之间只能排队执行，有时候为了效率，原则是可以妥协的，于是隔离性并不严格，它被分为了多种级别，**从高到低分别为**：
 
 - ⬇️可串行化（Serializable）-脏读、幻读、不可重读度的问题
@@ -343,6 +347,54 @@ SELECT * FROM test;
 产生原因：破坏了事务的隔离性
 
 解决：使用事务的隔离级别
+
+#### 内存结构
+
+[MySQL memory architecture and index description | Develop Paper](https://developpaper.com/mysql-memory-architecture-and-index-description/)
+
+#### MVCC
+
+多版本并发控制，用来实现快照读下的RC和RP的事务隔离级别。
+
+ReadView：快照读，就是最普通的select查询语句
+
+当前读：insert、update、delete、select .. for update
+
+原子性—undo log
+
+持久性—redo log
+
+隔离性—MVCC（RC、RP）和加锁（串行化）
+
+**ReadView**
+
+RC：每次select会生成一个readview
+
+RP：每个事务生成一个readview
+
+m_ids：表示在生成readview时，当前系统中，活跃的事务ID列表，即没有进行commit的事务。
+
+min_trx_id：表示在生成readview时，当前系统中活跃的事务中，最小的事务ID，就是m_ids中的最小值
+
+max_trx_id：表示在生成readview时，系统应该分配给下一个事务的ID
+
+creator_trx_id：表示在生成readview时，创建给自己的事务id
+
+判断redo log版本链中哪个版本可用
+
+trx_id=creator_trx_id  可以访问这个版本，即访问的是自己的事务
+
+trx_id<min_trx_id 可以访问这个版本,即访问的是已经commit的事务
+
+trx_id>max_trx_id 不可以访问这个版本,即访问下一个事务ID，版本链中还没有
+
+min_trx_id <=trx_id<=max_trx_id  如果事务ID在事务ID列表中有，代表是没有commit的事务，不能访问，反之则可以
+
+##### MVCC如何实现事务的隔离级别
+
+MVCC实现的是读已提交（RC）、可重复读（RR），这2个隔离级别的并发控制
+
+基于redo log版本链，每个版本链会记录数据、事务ID（tx_id）、回滚指针(roll_pointer)指向上一个版本
 
 #### 6. 锁
 
