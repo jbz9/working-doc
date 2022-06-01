@@ -1,4 +1,7 @@
 ### 简介
+
+参考：[Spring Cloud](https://spring.io/projects/spring-cloud)
+
 1.springcloud的作用  
 将一个大的项目分拆成一个个小模块，每个模块都是一个独立的子系统，可以单独运行。
 2.springcloud的基础功能    
@@ -114,7 +117,7 @@ Feign是一种声明式、模板化的HTTP客户端。在Spring Cloud中使用Fe
 
 现在的架构很可能会设计成这样：
 
-<img src="D:\软件\Markdown\typora-user-images\image-20200723172226070.png" alt="image-20200723172226070" style="zoom:50%;" />
+![](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/1653900619864image-20200723172226070.png)
 
 这样的架构会有两个比较麻烦的问题：
 
@@ -141,13 +144,23 @@ Spring Cloud Config项目是一个解决分布式系统的配置管理方案。�
 - 简单来说，使用Spring Cloud Config就是将配置文件放到**统一的位置管理**(比如GitHub)，客户端通过接口去获取这些配置文件。
 - 在GitHub上修改了某个配置文件，应用加载的就是修改后的配置文件。
 
+### 什么是微服务
+
+microservice，是把直接的单体架构，拆分成多个子系统，这每个子系统都是一个服务，它们整体在一起组成 了一个微服务架构。
+
 ### 说一下微服务组件
 
-注册中心：Eureka
+| 组件       | springcloud          | springcloud Alibaba  | Dubbo     |
+| ---------- | -------------------- | -------------------- | --------- |
+| 注册中心   | Eureka               | nacos                | zookeeper |
+| 网关       | spring cloud gateway | spring cloud gateway |           |
+| 负载均衡   | Ribbon（被取代）     |                      |           |
+| 限流       | Hystrix              | Sentinel             |           |
+| 配置中心   | springcloud config   | Nacos config         | 无        |
+| 声明式调用 | Feign、openFeign     |                      |           |
+| 链路追踪   |                      |                      |           |
+|            |                      |                      |           |
 
-网关：gateway
+### bootstrap.yaml
 
-负载均衡：ribbon
-
-
-
+bootstrap是spring应用程序的上下文，它的优先级比application.yaml要高，一般我们用git 搭建一个配置中心，然后本地服务可以使用bootstrap去连接配置中心，获取配置。
