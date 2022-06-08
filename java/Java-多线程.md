@@ -389,9 +389,63 @@ public void creatThread() {
 
 ![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16526924365681652692435745.png)
 
-#### 1.4 线程池参数怎么配置
+##### 1.5线程池参数怎么配置
 
  需要具体看线程池执行的任务是CPU密集还是IO密集的
 
 * CPU密集：一般线程数可以设为服务器的cpu核数+1，减少cpu上下文的切换
 * IO密集：任务消耗时间主要在等待IO返回上，cpu的压力不大，那么核心线程可以多一些，可以设为cpu核数的2倍。
+
+#### 4. 线程池的种类
+
+```java
+线程池不允许使用Executors去创建，而是通过ThreadPoolExecutor的方式，这样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。 说明：Executors返回的线程池对象的弊端如下：
+1）FixedThreadPool和SingleThreadPool:
+  允许的请求队列长度为Integer.MAX_VALUE，可能会堆积大量的请求，从而导致OOM。
+2）CachedThreadPool:
+  允许的创建线程数量为Integer.MAX_VALUE，可能会创建大量的线程，从而导致OOM。
+            
+Positive example 1：
+    //org.apache.commons.lang3.concurrent.BasicThreadFactory
+    ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(1,
+        new BasicThreadFactory.Builder().namingPattern("example-schedule-pool-%d").daemon(true).build());
+       
+        
+            
+Positive example 2：
+    ThreadFactory namedThreadFactory = new ThreadFactoryBuilder()
+        .setNameFormat("demo-pool-%d").build();
+
+    //Common Thread Pool
+    ExecutorService pool = new ThreadPoolExecutor(5, 200,
+        0L, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<Runnable>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+
+    pool.execute(()-> System.out.println(Thread.currentThread().getName()));
+    pool.shutdown();//gracefully shutdown
+       
+        
+            
+Positive example 3：
+    <bean id="userThreadPool"
+        class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="10" />
+        <property name="maxPoolSize" value="100" />
+        <property name="queueCapacity" value="2000" />
+
+    <property name="threadFactory" value= threadFactory />
+        <property name="rejectedExecutionHandler">
+            <ref local="rejectedExecutionHandler" />
+        </property>
+    </bean>
+    //in code
+    userThreadPool.execute(thread);
+```
+
+
+
+##### 可缓存的线程池
+
+newCachedThreadPool，线程数量
+
+定长
