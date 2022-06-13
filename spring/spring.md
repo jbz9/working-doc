@@ -306,7 +306,9 @@ bean是由IOC容器创建、管理的对象
 
 Component、service、controller、repository
 
+#### Spring 框架中的单例 bean 是线程安全的吗?
 
+不是线程安全的，bean的作用域
 
 ###  IOC
 
@@ -317,6 +319,10 @@ IOC的整个流程可以分为几个阶段：
 ![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16522398382211652239837376.png)
 
 #### beanfactory和applicationcontext
+
+不同点：BeanFactory是延迟加载，如果Bean的某个属性没有注入，BeanFactory加载之后，直到第一次使用调用getBean方法才会抛出异常。
+
+而ApplicationContext在初始化的时候就会校验属性是否注入。
 
 beanfactory可以看做IOC容器，applicationcontext也可以看成一个beanfactory，因为它也实现了beanfactory这个接口
 

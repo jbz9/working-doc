@@ -148,11 +148,124 @@ public class Hello {
 
 ### 4. JVM 调优
 
-#### 1. 设置堆内存大小
+#### 4.1 调优命令有哪些
+
+##### jps
+
+JVM Process Status 显示JVM进程
+
+##### jstat
+
+JVM statistics Monitoring JVM监控工具，统计信息监控
+
+##### jmap
+
+JVM Memory Map 生成heap dump文件
+
+##### jstack
+
+生成JVM当前时刻的线程快照
+
+##### jinfo
+
+JVM Configuration info  查看JVM运行参数。
+
+#### 4.2 Minor GC与Full GC分别在什么时候发生？
+
+Minor GC也叫young GC，新生代内存不够的时候发生YGC
+
+Full GC 老年代内存不够的时候发生Full GC
+
+#### 4.3 需要JVM调优的情况
+
+* 项目中用到了本地缓存，而且本地缓存的内存用的比较大
+* FUll GC 比较频繁
+* Full GC的时间比较长（超过1秒）
+* 堆内存的老年代
+
+#### 4.4 垃圾回收算法
+
+##### 标记-清除算法（Mark-Sweep）
+
+由2个阶段组成
+
+①标记阶段：标记已经死亡的对象
+
+②清理阶段：清理死亡的对象
+
+<img src="https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16550907057141655090705512.png"  />
+
+缺点：造成很多的内存碎片，当大对象需要被分配内存时，可能找不到合适的内存，导致再次触发GC
+
+##### 标记-整理算法（Mark-Sweep）
+
+①标记阶段：标记出的对象
+
+②整理阶段：移动所有存活的对象，按照内存地址依次排序
+
+![](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16550908307181655090829774.png)
+
+缺点：
+
+效率比较低
+
+##### 复制算法
+
+①将内存一分为2
+
+②将存活的对象集中复制到另一块内存空间
+
+
+
+
+
+优点：
+
+效率比较高，没有内存碎片产生
+
+缺点：
+
+内存利用率低
+
+#### 4.5 垃圾回收器有哪些
+
+新生代收集器：Serial、 ParNew 、 Parallel Scavenge
+
+ 老年代收集器： CMS 、Serial Old、Parallel Old
+
+整堆收集器： G1 ， ZGC
+
+#### 4.7 如何判断对象死亡
+
+##### **引用计数法（Reference Counting）**
+
+##### **可达性分析（Reachability Analysis）**
+
+#### 4.6 调优方案
+
+xms(最小)、xmx（最大）、xmn（新生代大小）、NewRatio（新生代和老年代占比）、SurvivorRatio（伊甸园和幸存区占比）
+
+##### 调整内存大小
+
+场景：GC回收比较频繁
 
 Java堆区用于存储Java对象实例，那么堆的大小在JVM启动时就已经设定好了，大家可以通过选项"-Xmx"和"-Xms"来进行设置。例如：
 
-> -Xms10m：最小堆内存 -Xmx10m：最大堆内存
+> ```shell
+> //设置堆初始值
+>  指令1：-Xms2g
+>  指令2：-XX:InitialHeapSize=2048m
+>  
+>  //设置堆区最大值
+>  指令1：`-Xmx2g` 
+>  指令2： -XX:MaxHeapSize=2048m
+>  
+>  //新生代内存配置
+>  指令1：-Xmn512m
+>  指令2：-XX:MaxNewSize=512m
+>  
+> nohup java -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m -Xms1024m -Xmx1024m -Xmn256m -Xss256k -XX:SurvivorRatio=8 -XX:+UseConcMarkSweepGC -jar /jar包路径 
+> ```
 
 - “**-Xms**"用于表示堆区的起始内存，等价于`-XX:InitialHeapSize`
 - “-**Xmx**"则用于表示堆区的最大内存，等价于`-XX:MaxHeapSize`
@@ -166,7 +279,16 @@ Java堆区用于存储Java对象实例，那么堆的大小在JVM启动时就已
 - 初始内存大小：物理电脑内存大小 / 64
 - 最大内存大小：物理电脑内存大小 / 4
 
+##### 设置GC时间
 
+现象：程序间接性的卡顿
+
+原因：如果没有确切的停顿时间设定，垃圾收集器以吞吐量为主，那么垃圾收集时间就会不稳定。
+
+```text
+//GC停顿时间，垃圾收集器会尝试用各种手段达到这个时间
+ -XX:MaxGCPauseMillis 
+```
 
 ### 5. Class 文件
 
@@ -385,7 +507,7 @@ jvisualvm.exe
 
 查看类、实例数量、排名靠前的的实例
 
-### 7、类加载机制
+### 7. 类加载机制
 
 JVM的功能：载入、执行平台无关的字节码文件。
 
@@ -496,11 +618,12 @@ static final float F = 0.52f
 
 ![](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16537359088341653735908115.png)
 
-### 垃圾回收算法
 
-#### 标记-清除
 
-Mark-Sweep 
+### 8. 对象一定分配在堆中吗？逃逸分析
 
-标记-清除算法是由2个阶段组成，一个是标记，一个是清除。
+不一定，有可能会发生逃逸分析。
 
+会根据对象的引用范围，决定是否分配到堆内存或者是栈内存
+
+逃逸分析 Escape Analysis

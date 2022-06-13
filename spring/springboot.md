@@ -286,3 +286,25 @@ public class JarLauncher extends ExecutableArchiveLauncher {
 }
 ```
 
+#### 如何在Spring Boot启动的时候运行一些特定的代码？
+
+继承CommandLineRunner接口，然后去重写run方法
+
+```java
+@SpringBootApplication
+@Slf4j
+public class LearnApplication implements CommandLineRunner {
+
+    public static void main(String[] args) {
+        SpringApplication.run(LearnApplication.class, args);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        log.info("启动springboot");
+    }
+}
+```
+
+
+
