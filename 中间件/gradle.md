@@ -103,13 +103,45 @@ gradle只保证主要版本（e.g. `1.x`, `2.x`, etc.）的向后兼容性，即
 
 ## Gradlew
 
-gradlew就是对gradle的包装和配置，gradlew是gradle Wrapper，Wrapper的意思就是包装。
+### 原理
 
-因为不是每个人的电脑中都安装了gradle，也不一定安装的版本是要编译项目需要的版本，那么gradlew里面就配置要需要的gradle版本。
+gradlew是gradle Wrapper，Wrapper的意思就是包装。Gradle Wrapper 它是一个脚本，调用了已经声明的 Gradle 版本。
 
-然后用户只需要运行gradlew就可以按照配置下载对应的gradle到项目的目录中，仅仅给项目本身用，然后就是clean、build等操作。
+因为不是每个人的电脑中都安装了gradle，也不一定安装的版本是要编译项目需要的版本。所以我们在Gradle Wrapper 中声明项目需要的gradle版本。
 
-但是如果执行gradle clean 这样的命令的话，系统使用的是电脑环境变量中配置的gradle；此时我们就用gradlew clean这个命令，其实内部调用的是本项目中的gradle来执行的，所以就相当于进行了一次包装。
+然后用户只需要运行项目中的gradlew命令，就可以按照配置，自动下载申明的gradle版本，之后使用gradlew命令去执行clean、build等操作，执行gradlew命令时，就会去使用Gradle Wrapper 申明的gradle版本去执行gradle命令。
+
+### 使用Gradle Wrapper
+
+在项目根目录下直接运行`gradlew build`或者`gradlew.bat build`（根据操作系统自行选择）就会自动下载项目需要使用的`Gradle`。
+
+**直接使用 gradlew  dependencies命令，第一次也会先去下载声明的gradle版本，再生成依赖树。**
+
+### 目录结构
+
+```shell
+├── gradle
+│   └── wrapper
+│       ├── gradle-wrapper.jar  
+│       └── gradle-wrapper.properties
+├── gradlew  
+├── gradlew.bat  
+```
+
+在`gradle/wrapper`目录下就是`Gradle Wrapper`了。其中
+
+- `gradle-wrapper.jar`就是下载项目构建使用的`Gradle`的下载器
+- `gradle-wrapper.properties`就是就是`Gradle Wrapper`的配置文件了
+
+而`gradlew`和`gradlew.bat`则分别是`UNIX`和`Windows`环境下调用包装器的脚本
+
+优势：
+
+将 wrapper 配置相关文件提交到代码仓库，用统一的 Gradle 版本进行构建工程，可以避免因为 Gradle 版本不统一而带来的问题。
+
+条件
+
+需要源码项目中使用了Gradle Wrapper
 
 ### 无网络的情况
 
@@ -117,7 +149,7 @@ gradlew就是对gradle的包装和配置，gradlew是gradle Wrapper，Wrapper的
 
 解决方案：
 
-提前下载好项目需要的gradle版本的zip包放到服务器上，然后更改项目根目录下gradle/wrapper/gradle-wrapper.properties文件。distributionUrl的值为gradle安装包路径。
+提前下载好项目需要的gradle版本的zip包放到服务器上，然后更改项目根目录下gradle/wrapper/gradle-wrapper.properties文件，更改distributionUrl的值，更改为gradle安装包路径。
 
 ```properties
 distributionBase=GRADLE_USER_HOME
@@ -127,6 +159,24 @@ distributionUrl=file\:/d:/develop/gradle/gradle-7.5/.gradle/wrapper/dists/gradle
 zipStoreBase=GRADLE_USER_HOME
 zipStorePath=wrapper/dists
 ```
+
+### 项目使用
+
+目前项目中使用的是gradle 命令生成依赖树，即需要先去下载固定的gradle版本，然后配置好gradle的环境变量，再通过gradle --no-daemon dependencies命令生成依赖树
+
+1、更改gradle命令
+
+目前的命令：gradle --no-daemon dependencies
+
+需要更改为：gradlew --no-daemon dependencies
+
+2、赋予gradlew 执行权限
+
+目前通过第一阶段，将源码zip解压到临时目录后，gradlew 文件失去了执行权限，需要给gradlew 赋予执行权限
+
+结论
+
+
 
 ## maven-wrapper
 
