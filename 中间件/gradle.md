@@ -224,3 +224,33 @@ mvn -N io.takari:maven:0.7.7:wrapper -Dmaven=3.6.0
 mvnw dependency:tree 
 ```
 
+## 私服
+
+### 依赖Nexus私服仓库
+
+修改项目的build.gradle文件，在repositories函数的参数中加入maven {url **你的私服仓库地址**} 即可。
+
+```groovy
+//申明所有模块的私服
+allprojects {
+    repositories {
+        maven { url "https://maven.aliyun.com/repository/public/" }
+        maven { url "https://mvn-rep.hf.seczone.cn/nexus/content/repositories/snapshots/" }
+        maven { url "https://10.0.0.101:8081/repository/maven-public/" }
+        maven { url "https://mvn-rep.hf.seczone.cn/nexus/content/repositories/snapshots/" }
+    }
+}
+
+或
+//申明当前模块的私服
+repositories {
+        maven { url "https://maven.aliyun.com/repository/public/" }
+        maven { url "https://mvn-rep.hf.seczone.cn/nexus/content/repositories/snapshots/" }
+        maven { url "https://10.0.0.101:8081/repository/maven-public/" }
+        maven { url "https://mvn-rep.hf.seczone.cn/nexus/content/repositories/snapshots/" }
+}
+```
+
+
+
+
