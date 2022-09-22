@@ -17,6 +17,45 @@ pom文件引入
       </dependency>
  </dependencies>
 ```
+### mvn deploy到私服
+
+pom文件配置
+
+```xml
+ <distributionManagement>
+        <snapshotRepository>
+            <id>SecZone-snapshot</id>
+            <name>SecZone Nexus Snapshot Repository</name>
+            <url>http://mvn-rep.hf.seczone.cn/nexus/content/repositories/snapshots</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+        <repository>
+            <id>SecZone-release</id>
+            <name>SecZone Nexus Release Repository</name>
+            <url>http://mvn-rep.hf.seczone.cn/nexus/content/repositories/releases</url>
+            <uniqueVersion>true</uniqueVersion>
+        </repository>
+  </distributionManagement>
+```
+
+setting.xml配置
+
+```xml
+<server>
+        <id>001-release</id>
+        <username>**</username>
+        <password></password>
+    </server>
+    <server>
+        <id>001-snapshot</id>
+        <username>***</username>
+        <password>***</password>
+    </server>
+  </servers>
+```
+
+
+
 2.第二种方式
 
 ```xml

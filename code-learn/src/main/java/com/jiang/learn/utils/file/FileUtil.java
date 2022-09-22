@@ -1,73 +1,116 @@
 package com.jiang.learn.utils.file;
 
-import java.io.*;
-import java.util.Enumeration;
-import java.util.zip.*;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+
+@Slf4j
 public class FileUtil {
 
-    private static final int BUFFER_SIZE = 2 * 1024;
+    /**
+     * 方法说明：加载resources/lib下的dll或so文件
+     *
+     * @param libName 文件名 例如：Fileinfo   linux下文件为：libFileinfo.so  windows下文件为：fileinfo.dll
+     * @return void
+     * @throws
+     * @Author jiangbaozi
+     * @Date 2022/9/21 18:19
+     **/
 
-
-    public static void unZip(File srcFile, String destDirPath) {
-        // 开始解压
-        ZipFile zipFile = null;
-        try {
-            zipFile = new ZipFile(srcFile);
-            Enumeration<?> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = (ZipEntry) entries.nextElement();
-                System.out.println("解压" + entry.getName());
-                // 如果是文件夹，就创建个文件夹
-                if (entry.isDirectory()) {
-                    String dirPath = destDirPath + "/" + entry.getName();
-                    File dir = new File(dirPath);
-                    dir.mkdirs();
-                } else {
-                    // 如果是文件，就先创建一个文件，然后用io流把内容copy过去
-                    File targetFile = new File(destDirPath + "/" + entry.getName());
-                    // 保证这个文件的父文件夹必须要存在
-                    if (!targetFile.getParentFile().exists()) {
-                        targetFile.getParentFile().mkdirs();
-                    }
-                    targetFile.createNewFile();
-                    // 将压缩文件内容写入到这个文件中
-                    InputStream is = zipFile.getInputStream(entry);
-                    FileOutputStream fos = new FileOutputStream(targetFile);
-                    int len;
-                    byte[] buf = new byte[BUFFER_SIZE];
-                    while ((len = is.read(buf)) != -1) {
-                        fos.write(buf, 0, len);
-                    }
-                    // 关流顺序，先打开的后关闭
-                    fos.close();
-                    is.close();
-                }
-            }
-            long end = System.currentTimeMillis();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (zipFile != null) {
-                try {
-                    zipFile.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+    public static void loadLib(String libName) throws IOException {
+        String systemType = System.getProperty("os.name");
+        String libExtension = (systemType.toLowerCase().contains("win")) ? ".dll" : ".so";
+        String libFullName = libName + libExtension;
+        String nativeTempDir = System.getProperty("user.dir") + File.separator + "lib";
+        if (!new File(nativeTempDir).exists()) {
+            new File(nativeTempDir).mkdir();
+        }
+        File extractedLibFile = new File(nativeTempDir + File.separator + libFullName);
+        if (!extractedLibFile.exists()) {
+            //将dll从jar复制到当前目录
+            InputStream ddlStream = FileUtils.class.getClassLoader().getResourceAsStream("lib" + File.separator + libFullName);
+            try (FileOutputStream fos = new FileOutputStream(extractedLibFile.getAbsolutePath());) {
+                byte[] buf = new byte[2048];
+                int r;
+                while (-1 != (r = ddlStream.read(buf))) {
+                    fos.write(buf, 0, r);
                 }
             }
         }
+        System.load(extractedLibFile.getAbsolutePath());
     }
 
-    public static void main(String[] args) throws IOException {
-        FileUtil fileUtil = new FileUtil();
-        String src = "D:\\develop\\workSpace\\sca\\sca-binary-scan\\extract\\bin\\genymotion-3.2.1-linux_x64\\genymotion-3.2.1-linux_x64_bin";
-        //src = "D:\\develop\\workSpace\\sca\\sca-binary-scan\\extract\\bin\\Install_TW6.1.5.8_Enterprise_Linux\\good.zip";
-        src = "D:\\develop\\workSpace\\sca\\sca-binary-scan\\extract\\bin\\Install_TW6.1.5.8_Enterprise_Linux\\Install_TW6.1.5.8_Enterprise_Linux_bin";
-        src = "D:\\develop\\workSpace\\sca\\sca-binary-scan\\extract\\bin\\jre-6u45-linux-x64\\jre-6u45-linux-x64_bin";
-        File sourceFileTmp = new File(src);
-        File targetDir = new File("C:\\Users\\jiangbaozi\\AppData\\Local\\Temp\\dctemp3b9dda60-f13d-4cb0-8222-f9addd0cb502");
-        FileUtil.unZip(sourceFileTmp, targetDir.getAbsolutePath());
-        //    FileUtil.decompressZip(sourceFileTmp.getAbsolutePath(), targetDir.getAbsolutePath());
-        //fileUtil.repairZipFile(src);
+
+    /**
+     * 方法说明：复制resources/binary下的dll或so文件 到临时目录
+     *
+     * @param
+     * @return void
+     * @throws
+     * @Author jiangbaozi
+     * @Date 2022/9/22 16:00
+     **/
+
+
+    public void loadAllLibs() {
+        ClassLoader cl = FileUtil.class.getClassLoader();
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
+        Resource[] resources;
+        String nativeTempDir = System.getProperty("java.io.tmpdir") + File.separator + "binary";
+        File tmpFile = new File(nativeTempDir);
+        if (!tmpFile.exists()) {
+            tmpFile.mkdir();
+        }
+        try {
+            resources = resolver.getResources("binary/*.*");
+            for (Resource r : resources) {
+                File libFile = r.getFile();
+                File tmpLib = new File(nativeTempDir + File.separator + libFile.getName());
+                if (!tmpLib.exists()) {
+                    //不存在复制一份
+                    Files.copy(libFile.toPath(), tmpLib.toPath());
+                }
+            }
+        } catch (IOException e) {
+            log.warn("加载二进制插件dll/so文件失败", e);
+        }
+
     }
+
+    /**
+     * 方法说明：重新设置 重新设置java.library.path目录，添加一个新的目录
+     *
+     * @param
+     * @return void
+     * @throws
+     * @Author jiangbaozi
+     * @Date 2022/9/22 16:05
+     **/
+
+    public void resetLibDir() {
+        //重新设置java.library.path属性
+        String soPath = File.separator + "opt" + File.separator + "dev";
+        String libPath = System.getProperty("java.library.path");
+        libPath = soPath + File.pathSeparator + libPath;
+        try {
+            final Field sysPathsField = ClassLoader.class.getDeclaredField("sys_paths");
+            sysPathsField.setAccessible(true);
+            sysPathsField.set(null, null);
+        } catch (Exception e) {
+            log.warn("java.library.path 设置失败，error：{}", e.getStackTrace());
+        }
+        System.setProperty("java.library.path", libPath);
+        log.info("java.library.path 路径：{}", System.getProperty("java.library.path"));
+    }
+
+
 }
