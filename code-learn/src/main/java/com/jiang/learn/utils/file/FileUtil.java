@@ -1,15 +1,14 @@
 package com.jiang.learn.utils.file;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.FileCopyUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 
@@ -73,11 +72,14 @@ public class FileUtil {
         try {
             resources = resolver.getResources("binary/*.*");
             for (Resource r : resources) {
-                File libFile = r.getFile();
-                File tmpLib = new File(nativeTempDir + File.separator + libFile.getName());
+                File tmpLib = new File(nativeTempDir + File.separator + r.getFilename());
                 if (!tmpLib.exists()) {
                     //不存在复制一份
-                    Files.copy(libFile.toPath(), tmpLib.toPath());
+                    InputStream in = r.getInputStream();
+                    OutputStream out = cn.hutool.core.io.FileUtil.getOutputStream(tmpLib);
+                    IOUtils.copy(in, out);
+                    in.close();
+                    out.close();
                 }
             }
         } catch (IOException e) {
