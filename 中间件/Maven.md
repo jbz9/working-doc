@@ -1,17 +1,72 @@
 ### maven 将jar打入本地仓库
-1. 将jar包打包到本地仓库:进入到jar所在位置，执行maven命令
+
+1.第一种方式
+
+将jar包打包到本地仓库:进入到jar所在位置，执行maven命令
+
 ```shell 
 mvn install:install-file -Dfile=tmp-xk-common-1.0.jar -DgroupId=com.ustcinfo.ishare.tmp -DartifactId=tmp-xk-common -Dversion=1.0 -Dpackaging=jar
 ```
 pom文件引入
 ```xml
-    <dependency>
-      <groupId>com.ustcinfo.ishare.tmp</groupId>
-      <artifactId>tmp-xk-common</artifactId>
-      <version>1.0</version>
-  </dependency>
+<dependencies>    
+     <dependency>
+          <groupId>com.ustcinfo.ishare.tmp</groupId>
+          <artifactId>tmp-xk-common</artifactId>
+          <version>1.0</version>
+      </dependency>
+ </dependencies>
 ```
+2.第二种方式
+
+```xml
+  <dependencies>   
+        <dependency>
+            <groupId>cn.seczone</groupId>
+            <artifactId>extract-iso</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/extractIso.jar</systemPath>
+        </dependency>
+    </dependencies>
+    
+   <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+        <!--lib目录中的jar，打包后将被放入BOOT-INF/lib目录-->
+        <resources>
+            <resource>
+                <directory>lib</directory>
+                <targetPath>/BOOT-INF/lib/</targetPath>
+                <includes>
+                    <include>**/*.jar</include>
+                </includes>
+            </resource>
+            <!-- 将resources资源目录打入jar-->
+            <!-- <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.dll</include>
+                    <include>**/*.so</include>
+                </includes>
+            </resource>-->
+        </resources>
+    </build>
+
+```
+
+
+
 ### maven依赖   
+
 原则一：最短路径原则 
 
 假如引入了2个Jar包A和B，都传递依赖了Z这个Jar包：
@@ -267,4 +322,77 @@ mvn dependency:tree -Dscope=compile
 编译
 
 ### 私服
+
+### 打包
+
+maven打包生成的普通jar包，只包含该工程下源码编译结果，不包含依赖内容。
+
+1、
+
+直接打包，不打包依赖包，仅打包出项目中的代码到JAR包中。在POM中添加如下plugin即可，随后执行maven install
+
+```
+<build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+         </plugins>
+ </build>
+```
+
+2、
+
+将项目中的JAR包的依赖包输出到指定的目录下,修改outputDirectory配置，如下面的${project.build.directory}/lib
+
+```
+<plugins>
+            <!-- java编译插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>com.yourpakagename.mainClassName</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                         <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+```
 

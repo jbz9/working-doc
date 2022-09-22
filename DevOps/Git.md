@@ -344,14 +344,21 @@ $ git push [remote] --all
 ### **撤销**
 
 ```shell
-# 恢复暂存区的指定文件到工作区
-$ git checkout [file]
+# 恢复暂存区的指定文件到工作区，放弃本地修改的代码，和远程保持一致
+$ git checkout --[file]
+git checkout --PomParseAnalyzer.java
+
 
 # 恢复某个commit的指定文件到暂存区和工作区
 $ git checkout [commit] [file]
 
 # 恢复暂存区的所有文件到工作区
 $ git checkout .
+
+# 执行完commit后，撤回commit，但是保留更改的代码
+# 进行了2次commit，想都撤回，可以使用HEAD~2
+git reset --soft HEAD~1
+
 
 # 重置暂存区的指定文件，与上一次commit保持一致，但工作区不变
 $ git reset [file]
