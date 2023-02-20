@@ -253,4 +253,51 @@ repositories {
 
 
 
+# 安卓
 
+## 依赖管理
+
+### 本地依赖
+
+`场景：多见于引用工程中libs目录下的jar、arr、so 等包`，[关于jar和arr的知识可以来这里科普 ~](https://blog.csdn.net/qq_20451879/article/details/80423642)
+
+整体引用 - 二进制依赖（常见）
+
+```java
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+```
+
+单独引用 - 二进制依赖（常见）
+
+```java
+dependencies {
+    implementation files('libs/aaa.jar', 'libs/bbb.jar')
+    implementation files('libs/nkSdk.aar')
+}
+```
+
+### 模块依赖
+
+引用项目中的本地model 
+
+```java
+dependencies {
+    implementation project(':projectL')
+}
+```
+
+#### 远端依赖
+
+二进制依赖（常见）
+
+```java
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+}
+```
+
+### gradle dependencies
+
+gradlew  :common:dependencies

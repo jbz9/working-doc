@@ -33,7 +33,7 @@ public class CharacterSet {
 
 
     public static void main(String[] args) throws IOException {
-        String path = "C:\\Users\\jiangbaozi\\Desktop\\1\\pom.xml";
+        String path = "D:\\sca\\go-result\\alibaba-cloud-csi-driver-master\\list.json";
         getFileCharacterSet(path);
     }
 }
