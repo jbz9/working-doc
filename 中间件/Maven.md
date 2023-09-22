@@ -54,7 +54,7 @@ setting.xml配置
   </servers>
 ```
 
-
+mvn deploy:deploy-file -DgroupId=cn.seczone -DartifactId=dex-translator -Dversion=2.2-SNAPSHOT -Dpackaging=jar -Dfile=dex-tools-2.2-SNAPSHOT.jar -Durl=http://mvn-rep.hf.seczone.cn/nexus/content/repositories/releases -DrepositoryId=SecZone-release
 
 2.第二种方式
 

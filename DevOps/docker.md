@@ -398,3 +398,34 @@ http://192.168.52.190:9800
 
 ```
 
+#### 安装Ubuntu
+
+使用docker安装一个Ubuntu
+
+1、pull镜像
+
+docker pull ubuntu
+
+2、后台启动容器
+
+docker run --name ubuntu-001 -ti -v /opt/ubuntu:/opt -d -p 2222:22 ubuntu
+
+映射宿主机的/opt/ubuntu 目录到 容器的/opt 目录，即把宿主机的容器的/opt/ubuntu目录共享给容器
+
+3、安装ssh-client、ssh-server
+
+apt-get install openssh-client
+apt-get install openssh-server
+
+4、重启ssh
+
+/etc/init.d/ssh start
+
+需要先安装vim编辑器 apt-get install vim
+编辑sshd_config文件，添加一行 
+
+PermitRootLogin yes 
+
+重启
+
+service ssh restart
