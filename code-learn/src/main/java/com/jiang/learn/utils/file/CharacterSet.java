@@ -1,6 +1,6 @@
 package com.jiang.learn.utils.file;
 
-import info.monitorenter.cpdetector.io.*;
+//import info.monitorenter.cpdetector.io.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,11 +15,11 @@ import java.nio.charset.Charset;
 public class CharacterSet {
 
     /**
-     * @param filePath 待检测文件
+     //* @param filePath 待检测文件
      * @return 字符集编码
      * @throws IOException
      */
-    public static String getFileCharacterSet(String filePath) throws IOException {
+  /*  public static String getFileCharacterSet(String filePath) throws IOException {
         CodepageDetectorProxy detector = CodepageDetectorProxy.getInstance();
         detector.add(new ParsingDetector(false));
         detector.add(UnicodeDetector.getInstance());
@@ -29,11 +29,10 @@ public class CharacterSet {
         Charset charset = detector.detectCodepage(file.toURI().toURL());
         System.out.println(charset.name());
         return charset.name();
-    }
+    }*/
 
 
     public static void main(String[] args) throws IOException {
         String path = "D:\\sca\\go-result\\alibaba-cloud-csi-driver-master\\list.json";
-        getFileCharacterSet(path);
     }
 }
