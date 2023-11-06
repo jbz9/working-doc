@@ -239,6 +239,8 @@ Full GC 老年代内存不够的时候发生Full GC
 
 ##### **引用计数法（Reference Counting）**
 
+加1减1。如果被引用就+1；如果引用被释放就—1；如果计数器=0，就会被GC
+
 ##### **可达性分析（Reachability Analysis）**
 
 #### 4.6 调优方案

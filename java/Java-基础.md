@@ -1,25 +1,27 @@
-
-
 https://www.cnblogs.com/crazymakercircle/p/13904029.html
 
 [疯狂创客圈 JAVA 高并发 总目录 - 疯狂创客圈 - 博客园 (cnblogs.com)](https://www.cnblogs.com/crazymakercircle/p/9904544.html)
 
 [面试题内容聚合 (qq.com)](https://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&mid=2247488811&idx=3&sn=b04d8fdacf575c7ec959de4107f31091&chksm=ebd62a07dca1a31186f7f62de60ba7c7a88db26233562ed7183c6f609c5e7f4ffb448f30375f&scene=21#wechat_redirect)
 
+# 基础知识点
+
+## 常见知识点
+
 ### 一. 多线程、锁
 
-![](https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16527697079691652769707539.png)
+![16988420671731698842066988.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16988420671731698842066988.png)
 
 ##### 1.  volatile关键字
 
-答：(1)保证变量的可见性（2）防止JVM指令重排
+答：(1)保证变量的可见性：一个线程修改变量之后，会把值刷新到主内存中 ，其它线程立刻就能看到（2）防止JVM指令对代码进行重排
 
 它是为了解决多线程下数据不一致的问题，也就是保证多线程下，变量的一个可见性，让线程直接从共享内存里读写变量，而不是从线程的本地内存副本里面读写。
 另外一个作用的话，是为了防止JVM指令重排，因为编译器在运行的时候会对代码进行优化，导致了代码的执行顺序和我们实际编写的顺序不一致。
 
 ##### 2. synchronized关键字
 
-加锁，主要是用来实现同步，本身是可重入锁和非公平锁。可以用在实例方法或者静态方法或者代码块上，让它在多线程下，同一时刻，只有一个线程能访问资源。
+它是对悲观锁的实现，用来锁住共享资源，控制并发访问，本身也是排它锁和非公平锁，可以用在实例方法或者静态方法或者代码块上，让它在多线程下，同一时刻，只有一个线程能访问资源。
 
 普通方法上：使用的锁是this对象
 
@@ -43,11 +45,206 @@ public static synchronized void work(){
 
 补充知识：锁又叫做对象监视器（Object Monitor），可以把任何一个非null对象当做锁，synchronized本身也是**可重入锁和非公平锁**，可以避免死锁出现，当它锁住代码块的时候，退出或异常时，释放锁。
 
-使用原理、实现机制：
+###### 2.1 Synchronized 和 ReentrantLock 
+
+Reentrant（re-en·trant /rēˈentrənt/）可重入的
+
+**相同点**
+
+都是为了控制共享资源的同步访问
+
+**区别**
+
+* `synchronized` 是内置锁，ReentrantLock使用需要用lock和unlock，用来获取和释放。
+
+ReentrantLock 例子
+
+```java
+import java.util.concurrent.locks.ReentrantLock;
+
+public class ReentrantLockExample {
+    private static ReentrantLock lock = new ReentrantLock();
+
+    public static void main(String[] args) {
+        // 创建并启动两个线程
+        Thread thread1 = new Thread(new Worker("Worker 1"));
+        Thread thread2 = new Thread(new Worker("Worker 2"));
+        thread1.start();
+        thread2.start();
+    }
+
+    static class Worker implements Runnable {
+        private String name;
+
+        public Worker(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public void run() {
+            // 尝试获取锁
+            System.out.println(name + " is trying to acquire the lock.");
+            lock.lock();
+            try {
+                // 第一次获取锁
+                System.out.println(name + " has acquired the lock for the 1st time.");
+                someMethod();
+                // 第二次获取锁（可重入）
+                System.out.println(name + " has acquired the lock for the 2nd time.");
+            } finally {
+                lock.unlock(); // 释放锁
+                System.out.println(name + " has released the lock.");
+            }
+        }
+
+        private void someMethod() {
+            lock.lock(); // 可重入地再次获取锁
+            try {
+                System.out.println(name + " is executing someMethod.");
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+}
+
+```
+
+###### 2.2 synchronized原理
+
+在Java里面，每个对象都有一个内置的对象锁，位于对象头， synchronized是基于对象锁实现的，当线程获取到synchronized修饰的代码后，也就是monitorEnter和monitorExit字节码修饰的，会去获取对象锁，如果对象锁被其它线程占用，就会进入阻塞，知道对象锁释放；同时线程释放对象锁的时候，会把修改的数据刷新共享内存中，避免数据不一致；
+
+对象的结构：
+
+- 对象头（Object Header）
+  - 哈希码（HashCode）：用于快速查找对象，标识对象的唯一性
+  - 锁状态（Lock State）：管理多线程对对象的访问，包括以下状态：
+    * 无锁：对象没有被锁定，可以被任意线程访问
+    *  轻量级锁 (Lightweight Lock)：用于短时间内的争用情况，通过CAS（比较并交换）实现
+    *  重量级锁 (Heavyweight Lock)：用于长时间的争用情况，由操作系统级别的锁来实现
+    * 偏向锁 (Biased Lock)：用于只有一个线程访问对象的情况，减少同步操作的开销。
+  - 垃圾回收信息（GC Info）：包括分代信息、存活状态、年龄等，用于垃圾回收
+- 实例数据（Instance Data）
+  - 成员变量和数据
+  - 对象的属性和字段
+- 对齐填充（Padding）
+
+![16991602442731699160243940.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16991602442731699160243940.png)
+
+例子
+
+```java
+/**
+ * Project Name : working-doc
+ * File Name    : SynchronizedExample
+ * Package Name : com.jiang.learn.thread.lock
+ * Date         : 2023-11-05 10:36
+ * Author       : jbz
+ */
+package com.jiang.learn.thread.lock;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * @author : jbz
+ * @ClassName : SynchronizedExample
+ * @Date : 2023-11-05 10:36
+ * @Description :
+ */
+public class SynchronizedExample {
+
+    public void synchronizedMethod() {
+        synchronized (this) {
+            System.out.println("hello world");
+        }
+    }
+
+    public static void main(String[] args) {
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        for (int i = 0; i < 100; i++) {
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    SynchronizedExample synchronizedExample = new SynchronizedExample();
+                    synchronizedExample.synchronizedMethod();
+                }
+            });
+        }
+    }
+}
+```
+
+执行：
+
+javac SynchronizedExample.java
+
+javap -c SynchronizedExample
+
+```java
+Compiled from "SynchronizedExample.java"
+public class com.jiang.learn.thread.lock.SynchronizedExample {
+  public com.jiang.learn.thread.lock.SynchronizedExample();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: return
+
+  public void synchronizedMethod();
+    Code:
+       0: aload_0
+       1: dup
+       2: astore_1
+       3: monitorenter // 对象锁
+       4: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+       7: ldc           #3                  // String hello world
+       9: invokevirtual #4                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+      12: aload_1
+      13: monitorexit
+      14: goto          22
+      17: astore_2
+      18: aload_1
+      19: monitorexit //对象锁
+      20: aload_2
+      21: athrow
+      22: return
+    Exception table:
+       from    to  target type
+           4    14    17   any
+          17    20    17   any
+
+  public static void main(java.lang.String[]);
+    Code:
+       0: bipush        10
+       2: invokestatic  #5                  // Method java/util/concurrent/Executors.newFixedThreadPool:(I)Ljava/util/concurrent/ExecutorService;
+       5: astore_1
+       6: iconst_0
+       7: istore_2
+       8: iload_2
+       9: bipush        100
+      11: if_icmpge     34
+      14: aload_1
+      15: new           #6                  // class com/jiang/learn/thread/lock/SynchronizedExample$1
+      18: dup
+      19: invokespecial #7                  // Method com/jiang/learn/thread/lock/SynchronizedExample$1."<init>":()V
+      22: invokeinterface #8,  2            // InterfaceMethod java/util/concurrent/ExecutorService.submit:(Ljava/lang/Runnable;)Ljava/util/concurrent/Future;
+      27: pop
+      28: iinc          2, 1
+      31: goto          8
+      34: return
+}
+
+```
+
+`monitorEnter`：这个指令用于获取对象的监视器锁。当一个线程执行到一个同步块（synchronized 块）的入口时，它会尝试获取对象的监视器锁。如果锁已被其他线程占用，那么该线程将被阻塞，直到锁被释放。
+
+`monitorExit`：这个指令用于释放对象的监视器锁。当一个线程执行完同步块的代码或者通过异常退出同步块时，它将释放对象的监视器锁，以允许其他线程获取这个锁。
+
+
 
 ##### **3. synchronized 和 volatile 关键字的区别**
 
-答：① synchronized 主要可以保证代码的原子性和线程之间的可见性，它可以用在方法和代码块上，volatile主要是保证线程之间的一个可见性，而且只能用在变量上
+答：① synchronized 主要可以保证代码的原子性和线程之间的可见性，它可以用在方法和代码块上，volatile主要是保证线程之间的一个可见性，而且只能用在变量上，不能提供原子性保证
 ② 另外的话，多线程下synchronized 可能导致阻塞，volatile不会
 
 ##### 4. 并发编程的三个特性
@@ -58,9 +255,9 @@ public static synchronized void work(){
 
 ##### 5. 公平锁和非公平锁
 
-答：公平锁：它是按照线程在队列里面的顺序，来决定谁先拿锁，谁在队列前面，谁先拿锁。实际上它是会拿锁之前，去判断队列是不是空的，或者自己是不是在队列的最前面。
+答：公平锁：**按照线程顺序去拿锁**，它是按照线程在队列里面的顺序，来决定谁先拿锁，谁在队列前面，谁先拿锁。实际上它是会拿锁之前，去判断队列是不是空的，或者自己是不是在队列的最前面。
 
-非公平锁：线程的话先去获取锁，获取不到才会去线程排队。这样的话减少了线程被挂起的概率，效率比公平锁要高。
+非公平锁：**先去拿锁，拿不到再去排队**。这样的话减少了线程被挂起的概率，效率比公平锁要高。
 
 实际的区别：公平锁，会在线程拿锁之前，去判断队列是不是空的或者自己是不是在队列的头部第一个。是的话，才去拿锁。
 
@@ -70,7 +267,11 @@ public static synchronized void work(){
 
 答：（1）悲观锁：每次拿数据的时候都会去加锁，这个话就是用synchronized实现，直接加在代码块或者方法上面就行了；
 
-（2）乐观锁：每次拿数据的时候都不会加锁（如果有冲突，就重试，直到成功），只有在修改数据的时候，才会去判断数据有没有被使用，这个的话可以用CAS原子指令去实现，比较并替换，基于它的3个操作数：旧的预期值、新的预期值、内存值，只有**当的旧预期=内存上的值**，才去操作。或者版本号机制，就是每次修改数据的时候版本号+1，读取修改数据前的版本号，和修改之后准备提交时候的版本号是否一致。
+（2）乐观锁：通过CAS（Compare And Swap）无锁算法，实现线程的同步访问 ，java并发包（java.util.concurrent）中的原子类（AtomicInteger）就是通过CAS来实现的乐观锁。
+
+CAS：
+
+每次拿数据的时候都不会加锁（如果有冲突，就重试，直到成功），只有在修改数据的时候，才会去判断数据有没有被使用，这个的话可以用CAS原子指令去实现，比较并替换，基于它的3个操作数：旧的预期值、新的预期值、内存值，只有**当的旧预期=内存上的值**，才去操作。或者版本号机制，就是每次修改数据的时候版本号+1，读取修改数据前的版本号，和修改之后准备提交时候的版本号是否一致。
 
 **一般的话，读取数据上可以用乐观锁，写入数据上可以用悲观锁**
 
@@ -78,9 +279,28 @@ public static synchronized void work(){
 
 乐观锁：它是假设最好的情况，每次拿数据的时候，都不会拿锁，只有修改数据的时候，才去会判断 别人有没有修改这个数据。
 
-CAS：Compare And Swap的缩写，比较并替换。
+**CAS：Compare And Swap的缩写，比较并替换。**
 
-例子：比如有一个变量a值是1，现在想把它数据加1，那么有个线程1去操作了，此时对于它，旧的预期值就是1，新的预期值是2，内存上的值是1，如果没有其它干涉的话，那么它就会提交成功了，但是如果在他提交之前，有个线程2把它的值改成了2，也就是内存值是2了，那么前一个线程就会提交失败。 那么它就会重新计算重试，也就是**自旋**
+例子：比如有一个变量a值是1，现在想把它数据加1，那么有个线程1去操作了，此时对于它，旧的预期值就是1，新的预期值是2，内存上的值是1，如果没有其它干涉的话，那么它就会提交成功了，但是如果在他提交之前，有个线程2把它的值改成了2，也就是内存值是2了，那么前一个线程就会提交失败。 那么它就会重新计算重试，也就是**自旋**。
+
+**例子**
+
+1. **初始状态**：
+   - 内存中有一个共享的变量 `V`，并有两个线程 A 和 B，它们都想更新这个变量。
+   - A 想将变量 `V` 的值从 10 更新为 20，B 想将变量 `V` 的值从 10 更新为 30。
+2. **比较**：
+   - 首先，线程 A 从内存中读取变量 `V` 的当前值，它的值是 10。
+   - 线程 B 也从内存中读取变量 `V` 的当前值，它的值也是 10。
+3. **更新**：
+   - 线程 A 更新变量 `V` 的值，将其从 10 更改为 20。
+   - **但在执行更新之前，线程 A 会再次检查变量 `V` 的当前值是否仍然是 10。如果是，线程 A 将其更新为 20。**
+4. **返回结果**：
+   - 线程 A 成功更新变量 `V` 的值，现在 `V` 的值是 20。
+   - 线程 B 也尝试执行相同的操作，但由于线程 A 先更新了变量 `V`，因此线程 B 的比较操作失败。线程 B 的操作不会改变变量 `V` 的值。
+
+这种 CAS 操作的优势在于它是无锁的，不需要使用传统的锁机制，可以有效地减少线程争用和提高并发性能。
+
+**核心是更新共享内存之前，查看比较共享内存有没有被更改。**
 
 版本号机制：
 一般是在数据表中加上一个数据版本号version字段，表示数据被修改的次数，当数据被修改时，version值会加一。当线程A要更新数据值时，在读取数据的同时也会读取version值，在提交更新时，若刚才读取到的version值为当前数据库中的version值相等时才更新，否则重试更新操作，直到更新成功。
@@ -93,17 +313,19 @@ CAS：Compare And Swap的缩写，比较并替换。
 
 ##### 8. 死锁
 
-答：死锁的话是因为，在多线程下，因为资源竞争，导致了线程同时被阻塞了，而它们又在等待对方释放资源，从而导致了无限制被阻塞。
+答：死锁的话是因为，多个线程去竞争同一个共享资源（**资源的互斥性**），线程之间又相互等待对方释放资源，但是自身资源又不主动释放，从而导致了线程被无限制的阻塞。
 
-它的产生的条件有4个：等待闭环、资源互斥、请求保持、不能抢占
+它的产生的条件有几个条件：
 
-①资源互斥：这个资源同一时刻，只能被同一个线程拥有
+①资源的互斥性，也就是共享资源同一时刻只能被一个线程持有；
 
-② 请求保持：如果它因为请求资源而导致了阻塞，它就会对占用的资源就不放开
+②持有和等待（Hold and Wait）：线程在请求另外一个资源B时，本身持有的资源A是不释放的；
 
-③ 不能抢占条件：对于它自己占用的资源，只能有它自己放开
+③不可抢占：线程持有的资源，只能自己是否，其它线程不能抢占；
 
-④ 等待闭环：它们之间形成了一个闭环的资源等待
+④ 循环等待资源释放，等待闭环。
+
+![16991767732641699176772750.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16991767732641699176772750.png)
 
 如果要解决的话，可以针对它产生的条件去破坏。比如在线程请求不到资源的时候，去**主动释放自身拥有的资源**，或者一次性申请所有的资源，破坏循环等待条件等。
 
@@ -131,17 +353,56 @@ PhantomReference<Object> phantomReference =new ReferenceQueue<Object>(new Object
 
 ##### 8. sleep() ⽅法和 wait() ⽅法区别和共同点
 
-答：2个都可以暂停线程，只不过sleep没有释放锁，一个线程调用wait()方法的时候，会释放它锁持有的对象的管程和锁，还有的就是，wait等待之后，需要另外的线程去通知唤醒它，sleep到时间了，线程自动起来。
+答：
 
-补充：
+**相同点**
 
-wait
+2个都可以暂停线程
 
-使当前线程等待，直到另一个线程为此对象调用notify，wait 则多用于多线程之间的通信。
+**不同点**
 
-sleep
+sleep是暂停线程，一般定时任务用的比较多；
 
-使当前正在执行的线程进入休眠状态
+wait是Object类的方法，会释放它持有的锁，还有的就是，wait等待之后，需要另外的线程去notify通知唤醒它，一般用在线程之间的相互协作。
+
+例子
+
+```java
+public class WaitExample {
+    public static void main(String[] args) {
+        final Object lock = new Object(); // 创建一个共享对象作为锁
+
+        Thread waitingThread = new Thread(() -> {
+            synchronized (lock) {
+                try {
+                    System.out.println("等待线程X：等待消息...");
+                    lock.wait(); // 进入等待状态
+                    System.out.println("等待线程X：收到消息了！");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Thread notifyingThread = new Thread(() -> {
+            synchronized (lock) {
+                System.out.println("通知线程Y：发送通知...");
+                lock.notify(); // 唤醒等待中的线程
+                System.out.println("通知线程Y：通知已发送！");
+            }
+        });
+
+        waitingThread.start();
+        notifyingThread.start();
+    }
+}
+
+打印输出：
+等待线程X：等待消息...
+通知线程Y：发送通知...
+通知线程Y：通知已发送！
+等待线程X：收到消息了！
+```
 
 ##### 9. 为什么调用线程的start方法，而不是run方法
 
@@ -149,17 +410,52 @@ sleep
 
 ##### 10、线程的状态有哪些
 
-答：当我们new了线程，这时候线程处于新建状态，当我们调用start方法的时候，线程就处于一个可运行的状态，当线程调用run方法的时候，它就处于运行状态，当我们调用sleep或者wait方法时候，线程就会由运行状态，变成阻塞状态，当run方法运行完成之后，线程被销毁，也就是死亡状态。
+答：当我们new了线程，这时候线程处于**新建状态**，当我们调用start方法的时候，线程就处于一个**可运行的状态**，当线程调用run方法的时候，它就处于**运行状态**，当我们调用sleep或者wait方法时候，线程就会由运行状态，变成**阻塞状态**，当run方法运行完成之后，线程被销毁，也就是**死亡状态**。
 
 ##### 11、如何创建线程
 
-答：（1）继承Thred线程类，重写run方法；（2）实现Runnable接口，重写它的run方法；（3）实现Callable接口(重写call方法，有返回值)
+答：（1）继承Thred线程类，重写run方法；（2）实现Runnable接口，重写它的run方法；（3）实现Callable接口(重写call方法，有返回值)；（4）线程池创建线程
 
-补充：与Runnable相比，Callable有返回值。
+```java
+public class ThreadExample {
+    static class ThreadOne extends Thread{
+        @Override
+        public void run(){
+            System.out.println("执行任务A");
+        }
+    }
 
-Runnable和Thred相比：
+    static class ThreadTwo implements Runnable{
+        @Override
+        public void run() {
+            System.out.println("执行任务B");
+        }
+    }
 
-Runnable是接口，可以多实现，Thread是类，继承线程类的话，就无法继承其它类了
+    static class ThreadThree implements Callable {
+        @Override
+        public Object call() throws Exception {
+            System.out.println("执行任务C");
+            return true;
+        }
+    }
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        ThreadOne threadOne = new ThreadOne();
+        threadOne.start();
+
+        Thread threadTwo = new Thread(new  ThreadTwo());
+        threadTwo.start();
+
+
+        FutureTask<Boolean> futureTask = new FutureTask<>(new ThreadThree());
+        Thread thread = new Thread(futureTask);
+        thread.start();
+        Boolean result = futureTask.get();
+        System.out.println(result);
+    }
+}
+```
 
 ##### 12. synchronized和ReentrantLock
 
@@ -187,32 +483,45 @@ synchronized和ReentrantLock也叫做阻塞同步，它们都是通过阻塞其�
 
 ##### 16、线程池的submit和execute方法的区别
 
-答：submit是有返回值的，execute没有返回值
+答：submit是有返回值的，用的Callable；execute没有返回值,用的是Runnable
 
 ##### 17、线程池有哪几类？
 
-答：4种。定长线程池、可以缓存的线程池、定时线程池、单个线程池
+答：4种。
+
+① 定长线程池：核心线程数=最大线程数，一般用在需要控制并发数，放在过载
+
+②定时线程池：用来执行一些定时任务
+
+③缓存线程池：它的核心线程数是0，最大线程数不固定，最大值是int类型的最大值，一般用在短时间的大量任务
+
+④单个线程池：核心线程数、最大线程数都是1，一般在顺序任务上，比如文件处理、数据同步
+
+⑤工作窃取线程池：核心线程数和最大线程数都不固定，根据具体的服务器CPU核数来确定，而且每个线程有自己的工作队列，如果一个线程完成了自己队列的任务，会从其他线程的队列中"窃取"任务来执行，以提高并行性。适合大规模的数据处理
 
 补充：
 
 ```java
-    //单线程池，使用唯一的工作线程来执行工作，保证任务按照优先级来执行
-        ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
-        singleThreadExecutor.execute(
-            () -> {
-            // ... do something inside runnable task
-
-        });
-        singleThreadExecutor.shutdown();
 
         //定长线程池，可以控制线程数量，任务超过线程数，则会在队列中等待，核心线程 = 最大线程
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);
 
+        //定时线程池
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
+
         //缓存线程池，不定长的线程池，核心线程数为0，最大线程数不限定
         ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
-        //定时线程池
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
+       //单线程池，使用唯一的工作线程来执行工作，保证任务按照优先级来执行
+        ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+        singleThreadExecutor.execute(
+            () -> {
+            // ... do something inside runnable task
+        });
+        singleThreadExecutor.shutdown(); 
+
+       //工作窃取线程池
+ ExecutorService executor = Executors.newWorkStealingPool();
 ```
 
 ##### 17. 创建线程池的参数
