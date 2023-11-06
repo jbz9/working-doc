@@ -30,10 +30,4 @@ public class UserController {
     private DBConfig dbConfig;
 
 
-    @GetMapping("/hello")
-    public Object hello() {
-        boolean mysql = dbConfig.getMysql().isEnable();
-        return "hello :" + mysql;
-    }
-
 }
