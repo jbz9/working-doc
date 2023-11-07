@@ -532,12 +532,95 @@ synchronized和ReentrantLock也叫做阻塞同步，它们都是通过阻塞其�
 
 ###### 1.2 拒绝策略
 
-4个拒绝策略
+用来处理线程池无法接受新任务时的采取的措施，4个拒绝策略。
 
-* CallRunsPolicy:
-* AbortPolicy:
-* DiscardPolicy:
-* DiscardOldestPolicy:
+①默认是拒绝执行新任务，丢出RejectedExecutionException异常，用的最多的方式
+
+②直接丢失新任务
+
+③丢失最开始的任务，这2种都会导致任务丢失
+
+④使用调用者的线程去执行新任务。这个策略如果过来的任务过多，调用者线程执行不过来，可能会导致同步阻塞任务。
+
+
+
+```java
+import java.util.concurrent.*;
+
+public class RejectedExecutionHandlerExample {
+    public static void main(String[] args) {
+     //   testAbortPolicy();
+        testCallerRunsPolicy();
+       // testDiscardPolicy();
+       // testDiscardOldestPolicy();
+    }
+
+    private static void testAbortPolicy() {
+        // 创建一个线程池，最大线程数为1，队列容量为1，使用 AbortPolicy 拒绝策略
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1));
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+
+        // 定义三个任务
+        Runnable task1 = () -> System.out.println("Task 1 executed.");
+        Runnable task2 = () -> System.out.println("Task 2 executed.");
+        Runnable task3 = () -> System.out.println("Task 3 executed.");
+
+        // 提交三个任务到线程池
+        executor.execute(task1);  // Task 1将被执行
+        executor.execute(task2);  // Task 2将被执行 队列中
+        executor.execute(task3);  // Task 3会被拒绝执行
+    }
+
+    private static void testCallerRunsPolicy() {
+        // 创建一个线程池，最大线程数为1，队列容量为1，使用 CallerRunsPolicy 拒绝策略
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1));
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
+        // 定义三个任务
+        Runnable task1 = () -> System.out.println(Thread.currentThread().getName()+": Task 1 executed.");
+        Runnable task2 = () -> System.out.println(Thread.currentThread().getName()+": Task 2 executed.");
+        Runnable task3 = () -> System.out.println(Thread.currentThread().getName()+": Task 3 executed.");
+
+        // 提交三个任务到线程池
+        executor.execute(task1);  // Task 1将被执行
+        executor.execute(task2);  // Task 2将被执行
+        executor.execute(task3);  // Task 3会由当前线程执行
+    }
+
+    private static void testDiscardPolicy() {
+        // 创建一个线程池，最大线程数为1，队列容量为1，使用 DiscardPolicy 拒绝策略
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1));
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
+
+        // 定义三个任务
+        Runnable task1 = () -> System.out.println("Task 1 executed.");
+        Runnable task2 = () -> System.out.println("Task 2 executed.");
+        Runnable task3 = () -> System.out.println("Task 3 executed.");
+
+        // 提交三个任务到线程池
+        executor.execute(task1);  // Task 1将被执行
+        executor.execute(task2);  // Task 2将被执行
+        executor.execute(task3);  // Task 3会被丢弃
+    }
+
+    private static void testDiscardOldestPolicy() {
+        // 创建一个线程池，最大线程数为1，队列容量为1，使用 DiscardOldestPolicy 拒绝策略
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1));
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardOldestPolicy());
+
+        // 定义三个任务
+        Runnable task1 = () -> System.out.println("Task 1 executed.");
+        Runnable task2 = () -> System.out.println("Task 2 executed.");
+        Runnable task3 = () -> System.out.println("Task 3 executed.");
+
+        // 提交三个任务到线程池
+        executor.execute(task1);  // Task 1将被执行
+        executor.execute(task2);  // Task 2会被丢弃
+        executor.execute(task3);  // Task 3将被执行
+    }
+}
+
+```
 
 ```java
 public ThreadPoolExecutor(int corePoolSize,
@@ -574,8 +657,6 @@ public void creatThread() {
 
         singleThreadPool.execute(() -> System.out.println(Thread.currentThread().getName()));
         singleThreadPool.shutdown();
-
-
     }
 ```
 
