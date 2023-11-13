@@ -477,9 +477,13 @@ synchronized和ReentrantLock也叫做阻塞同步，它们都是通过阻塞其�
 
 答：范围是1-10，默认是5。线程的优先级越高，被先执行的概率也就越高
 
-##### 15、为什么要用线程池
+##### 15、**日常工作中有用到线程池吗？什么是线程池？为什么要使用线程池？**
 
-答：**提高响应速度，降低资源消耗。**因为线程的创建比较消耗资源，频繁创建、消耗线程池，会提高资源消耗，降低系统的响应速度。使用线程池的话，可以有效避免这些，不会频繁创建消耗线程，而且当任务来的时候，也不需要去先去创建线程再去执行任务，提供响应速度，而且线程池方便管理线程
+答：用到过；
+
+线程池就是采用池化思想来管理线程的工具；
+
+对于服务器来说，现在的服务器大多都是多核CPU，使用多线程的话，并行执行任务，能够提高系统响应速度和处理能力，但是服务器的资源是有限的，如果不用多线程的话，频繁的创建和销毁线程，也是对资源的一种消耗，使用线程池能够避免这些问题，降低资源的消耗。
 
 ##### 16、线程池的submit和execute方法的区别
 
@@ -487,7 +491,7 @@ synchronized和ReentrantLock也叫做阻塞同步，它们都是通过阻塞其�
 
 ##### 17、线程池有哪几类？
 
-答：4种。
+答：5种。
 
 ① 定长线程池：核心线程数=最大线程数，一般用在需要控制并发数，放在过载
 
@@ -524,25 +528,93 @@ synchronized和ReentrantLock也叫做阻塞同步，它们都是通过阻塞其�
  ExecutorService executor = Executors.newWorkStealingPool();
 ```
 
-##### 17. 创建线程池的参数
+###### 1.1创建线程池的参数
 
-创建线程池使用**ThreadPoolExecutor**类，有6个参数，分为corePoolSize 核心线程数、最大线程数、存活时间、时间单位、缓冲队列（已提交但是没有执行的任务放在这里）和拒绝策略。
+创建线程池使用**ThreadPoolExecutor**类，有7个参数，分为corePoolSize 核心线程数、最大线程数、存活时间、时间单位、缓冲队列（已提交但是没有执行的任务放在这里）、线程工厂（设置线程名称）和拒绝策略。
+
+###### 1.2 线程池的状态
+
+1. **Running（运行）**：线程池正常运行，可以接受新任务并处理已提交的任务。
+2. **ShutDown（关闭）**：不再接受新任务，但会继续执行已提交的任务，直到所有任务完成。
+3. **Stop（停止）**：不再接受新任务，不会执行已提交的任务，会中断正在执行的任务线程。
+4. **Tidying（整理）**：所有任务都已终止，工作线程数量为0，线程池进入该状态进行资源清理。
+5. **Terminated（终止）**：线程池彻底终止，不能再执行任何任务
+
+![16995428014031699542800677.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16995428014031699542800677.png)
+
+https://tech.meituan.com/2020/04/02/java-pooling-pratice-in-meituan.html
 
 ###### 1.1阻塞队列
 
+1. **LinkedBlockingQueue（无界队列）**：
+
+   - 特点：无界队列，可以无限制地存储元素，但可能占用大量内存。
+   - 使用场景：适用于需要存储大量数据的场景，但需要注意内存占用。
+   - 代码示例：
+
+   ```
+   javaCopy codeBlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
+   queue.put(1);  // 阻塞等待，直到队列有空间
+   int item = queue.take();  // 阻塞等待，直到队列有数据
+   ```
+
+2. **ArrayBlockingQueue（有界队列）**：
+
+   - 特点：有界队列，需要指定最大容量，不会占用过多内存。
+   - 使用场景：适用于需要限制队列大小的场景，可以控制资源消耗。
+   - 代码示例：
+
+   ```
+   javaCopy codeBlockingQueue<Integer> queue = new ArrayBlockingQueue<>(10);  // 指定队列容量
+   queue.put(1);  // 阻塞等待，直到队列有空间
+   int item = queue.take();  // 阻塞等待，直到队列有数据
+   ```
+
+3. **PriorityBlockingQueue（优先级队列）**：
+
+   - 特点：基于元素的自然顺序或自定义比较器的顺序来执行出队操作，不会阻塞。
+   - 使用场景：适用于需要按照优先级顺序处理任务的场景。
+   - 代码示例：
+
+   ```
+   javaCopy codeBlockingQueue<Integer> queue = new PriorityBlockingQueue<>();
+   queue.offer(3);
+   queue.offer(1);
+   int item = queue.poll();  // 不会阻塞，按优先级出队
+   ```
+
+4. **SynchronousQueue（同步队列）**：
+
+   - 特点：同步队列中的每个插入操作必须等待一个对应的删除操作，反之亦然。
+   - 使用场景：适用于实现生产者-消费者模式，其中生产者和消费者需要精确匹配。
+   - 代码示例：
+
+   ```
+   javaCopy codeBlockingQueue<Integer> queue = new SynchronousQueue<>();
+   new Thread(() -> {
+       try {
+           queue.put(1);  // 阻塞等待，直到有消费者取走数据
+       } catch (InterruptedException e) {
+           e.printStackTrace();
+       }
+   }).start();
+   
+   int item = queue.take();  // 阻塞等待，直到有生产者放入数据
+   ```
+
+这些是Java中常见的阻塞队列，它们可根据不同的需求在多线程编程中使用，以实现线程之间的数据交换、任务调度等功能。根据具体的应用场景，你可以选择合适的阻塞队列类型来满足需求。
+
 ###### 1.2 拒绝策略
 
-用来处理线程池无法接受新任务时的采取的措施，4个拒绝策略。
+用来处理线程池无法接受新任务时的采取的措施，4个拒绝策略：
 
-①默认是拒绝执行新任务，丢出RejectedExecutionException异常，用的最多的方式
+①默认是拒绝执行新任务，丢出异常，用的最多的方式
 
 ②直接丢失新任务
 
 ③丢失最开始的任务，这2种都会导致任务丢失
 
 ④使用调用者的线程去执行新任务。这个策略如果过来的任务过多，调用者线程执行不过来，可能会导致同步阻塞任务。
-
-
 
 ```java
 import java.util.concurrent.*;
@@ -660,13 +732,29 @@ public void creatThread() {
     }
 ```
 
+###### 1.2 线程池的工作流程
 
+![16995012593551699501258434.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16995012593551699501258434.png)
+
+###### 1.3线程池核心参数设置多少合适呢？
+
+①需要结合具体的业务场景，可以通过不断的阶梯式压测，比如设置成服务器CPU核数，来观察服务器的CPU、内存、负载情况，找到一个比较合适的值；
+
+②一般的话，如果是I/O密集型任务，比如说文件读取、网络请求，可以设置大一些，因为I/O的话会等待资源的时间偏多，I/O等待的过程中，会释放CPU资源，核心线程数更大的话，可以更好的利用CPU时间。
+
+如果是CPU密集型任务，比如一些计算任务，线程会一直占用CPU资源，那么核心线程数可以设置相对小一些，防止频繁的CPU切换，导致资源消耗。
 
 ##### 17、垃圾回收机制介绍一下
 
-答：垃圾回收的话主要是使用了分代回收算法。当我们创建一个对象的时候，这个对象会被放到堆内存的伊甸区，当伊甸园的内存空间满了之后，就会触发一次Young GC，将还在使用的对象复制到幸存区from，当伊甸园空间再次满了之后，它会将伊甸园和from区还在使用的对象复制到幸存区to，这样多次GC之后，
+答：
 
+**①标记-清除算法 (Mark-Sweep Algorithm):**
 
+**②标记-整理算法 (Mark-Compact Algorithm)**：
+
+**③复制算法 (Copying Algorithm)**：
+
+**标记-整理算法 (Mark-Compact Algorithm)**：
 
 创建对象，分配到Eden区，当Eden区空间满了，就触发一次Young GC，将还在使用的对象复制到幸存区From,这样Eden被清空，以供继续存储对象，当Eden再次满了的时候，再触发一次Young GC，将Eden和幸存From区中还在被使用的对象复制到幸存区的to区，下一次，Young GC则是将Eden和To区中还在使用的对象放入到From区，这样，经过多次GC，有些对象会在From和To区经过多次复制，都没有被释放，那么到达一个阈值之后，这些对象就将放到老年代，如果老年代空间也用完，就会触发Full GC全量回收。
 
@@ -697,15 +785,77 @@ public void creatThread() {
 
 ##### 16、前后端分离项目中，接口安全性如何保证？
 
-答：主要是用**用户身份验证**、数据加密（RSA）、访问控制（访问频率、ip访问次数）。
+答：主要是用**用户身份验证**、访问控制（访问频率、ip访问次数）。
 
-做了token校验：用户登录之后，后台使用jwt生成token，并存到缓存里面，再把token返回给前端，之后接口访问的话，前台需要带token，后台会进行token校验（shiro校验）
+①做了token校验：用户登录之后，后台使用jwt生成token，并存到缓存里面，再把token返回给前端，之后接口访问的话，前台需要带token，后台会进行token校验
 
-补充：
+②https数据传输加密
 
-JWT（JSON WEB token）
+###### 1.1Token原理
 
-##### 17、RBAC权限控制模型了解吗
+![16997640505081699764049756.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16997640505081699764049756.png)
+
+###### **1.2JWT**
+
+![16997717993581699771799143.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16997717993581699771799143.png)
+
+JSON Web Token（JWT）是一种用于在不同实体之间安全传输信息的开放标准。它基于三部分构成：头部、载荷和签名。
+
+**头部（Header）：**
+
+JWT的头部包含了两部分信息：加密算法和令牌类型。它采用JSON格式，然后经过Base64编码。一个典型的头部可能是：
+
+```
+jsonCopy code{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+- `alg`（algorithm）表示使用的签名算法，比如HS256代表HMAC SHA-256。
+- `typ`（type）表示令牌的类型，通常为JWT。
+
+**载荷（Payload）：**
+
+载荷包含了JWT的声明信息。它采用JSON格式，同样经过Base64编码。一个典型的载荷可能是：
+
+```
+jsonCopy code{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "exp": 1516239022
+}
+```
+
+- `sub`（subject）表示令牌的主题，即标识令牌所属的用户或实体。
+- `name`表示令牌所属主体的姓名。
+- `exp`（expiration）表示令牌的过期时间。
+
+**签名（Signature）：**
+
+签名是通过对头部和载荷进行编码（通常是Base64编码），然后使用指定的加密算法和密钥生成的。签名用于验证令牌的完整性和真实性。
+
+签名的生成过程包括：
+
+- 对头部和载荷进行Base64编码。
+- 使用指定的签名算法和密钥对编码后的数据进行签名。
+- 将签名添加到JWT的第三部分。
+
+**验签**
+
+服务器端，你可以使用相同的加密密钥对 JWT 进行验证。一般情况下，验证 JWT 包括以下步骤：
+
+1. **接收 JWT：** 服务器接收到来自客户端的 JWT。
+2. **解析 JWT：** 将 JWT 拆分为 Header、Payload 和 Signature 三个部分。
+3. **验证签名：** 对接收到的 Header 和 Payload 进行相同的签名计算，使用相同的密钥。
+4. **比较签名：** 将服务器端计算出的签名与接收到的 Signature 进行比较。
+5. **验证有效期：** 验证 Payload 中的时间戳是否过期。
+
+###### Oauth2
+
+OAuth 2.0（Open Authorization 2.0）是一种授权框架，用在单点登录（SSO）、第三方登录、API访问控制等；JWT（JSON Web Token）通常被用作OAuth 2.0的访问令牌。
+
+###### RBAC权限控制模型了解吗
 
 答：它是通过角色关联来控制用户的权限，一个用户对应多个角色，一个角色对应多个菜单权限。
 
@@ -723,15 +873,82 @@ RBAC 即基于角色的权限访问控制（Role-Based Access Control）。通�
 
 ##### 2、了解IOC控制反转和DI吗
 
-答：IOC的话是控制反转，它是一种设计思想，DI是依赖注入，它是控制反转的一种的实现。在正常的程序里面，如果需要使用对象，需要自己new去创建，这样的话容易造成代码的耦合，而且在内存里面会存在多个重复的对象。而Spring的话，它是把创建对象和管理对象交给了Spring容器，不再需要我们手动去创建对象了，只需要通过XML或者注解去注册对象就饿可以了，之后，在我们需要是要使用的时候，通过Autowried自动装配就可以了。
-
-补充：
-
 IoC（Inverse of Control:控制反转）
+
+答：IOC的话是控制反转，它是一种设计理念，达到解耦的效果，DI是依赖注入，它是控制反转的一种的实现方式。在正常的代码里面，如果需要使用对象，需要应用程序自己去创建，这样的话容易造成代码的耦合，而且在内存里面会存在多个重复的对象。而IOC，它是把对象的创建和依赖关系的管理都交给了Spring容器，在我们需要是要使用的时候，只需要通过注解（Autowried）声明就可以了。
+
+**依赖注入（DI）**
+
+1. 构造函数注入（Constructor Injection）：
+
+通过类的构造函数注入依赖。Spring容器在实例化Bean时，会调用具有相应参数的构造函数。
+
+**使用方式：**
+
+```
+public class MyService {
+    private MyRepository repository;
+
+    // 构造函数注入
+    public MyService(MyRepository repository) {
+        this.repository = repository;
+    }
+}
+```
+
+2. Setter方法注入（Setter Injection）：
+
+通过Setter方法为Bean的属性设置值。Spring容器调用Bean的Setter方法注入依赖。
+
+**使用方式：**
+
+```
+public class MyService {
+    private MyRepository repository;
+
+    // Setter方法注入
+    public void setRepository(MyRepository repository) {
+        this.repository = repository;
+    }
+}
+```
+
+3. 注解方式注入：
+
+通过注解标记实现依赖注入。常见的注解有 `@Autowired`, `@Resource`, `@Inject` 等。
+
+**使用方式：**
+
+```
+public class MyService {
+    @Autowired
+    private MyRepository repository;
+}
+```
+
+4. 接口注入（Interface Injection）：
+
+通过接口实现依赖注入。使用接口定义依赖，实现类通过实现该接口完成依赖的注入。
+
+**使用方式：**
+
+```
+public interface MyRepository {
+    // method declarations
+}
+
+public class MyRepositoryImpl implements MyRepository {
+    // method implementations
+}
+
+public class MyService implements MyRepository {
+    // Implement methods from MyRepository interface
+}
+```
 
 ##### 3、AOP切面编程介绍一下
 
-答：AOP就是面向切面编程，它的话也是一种设计思想。AOP底层的话是动态代理。是针对在一个工程里面，有一些共同的操作比如说日志、权限管理，我们就可以把它抽离出来，看做一个切面，使用@Aspect做一个切面类，设置切入点和通知方式，切入到需要日志或者权限验证的业务方法，降低了代码的耦合度，提高了代码的**复用性**。
+答：AOP就是面向切面编程，它的话也是一种设计思想。AOP底层的话是动态代理。是针对程序里面，有一些共同的操作比如说日志、权限管理，我们就可以把它抽离出来，看做一个切面，使用@Aspect做一个切面类，设置切入点和通知方式，切入到需要日志或者权限验证的业务方法，降低了代码的耦合度，提高了代码的**复用性**。
 
 基于Java的主要AOP实现有：
 
@@ -783,17 +1000,29 @@ IoC（Inverse of Control:控制反转）
 
 补充：
 
-| 作用域         | 描述                                                         |
-| -------------- | ------------------------------------------------------------ |
-| singleton      | 在spring IoC容器仅存在一个Bean实例，Bean以单例方式存在，默认值 |
-| prototype      | 每次从容器中调用Bean时，都返回一个新的实例，即每次调用getBean()时，相当于执行newXxxBean() |
-| request        | 每次HTTP请求都会创建一个新的Bean，该作用域仅适用于WebApplicationContext环境 |
-| session        | 同一个HTTP Session共享一个Bean，不同Session使用不同的Bean，仅适用于WebApplicationContext环境 |
-| global-session | 一般用于Portlet应用环境，该运用域仅适用于WebApplicationContext环境 |
+| 作用域                 | 描述                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| 单例singleton          | 在spring IoC容器仅存在一个Bean实例，Bean以单例方式存在，默认值 |
+| 原型prototype          | 每次从容器中调用Bean时，都返回一个新的实例，即每次调用getBean()时，相当于执行newXxxBean() |
+| 请求request            | 每次HTTP请求都会创建一个新的Bean，该作用域仅适用于WebApplicationContext环境 |
+| 会话session            | 同一个HTTP Session共享一个Bean，不同Session使用不同的Bean，仅适用于WebApplicationContext环境 |
+| 全局会话global-session | 一般用于Portlet应用环境，该运用域仅适用于WebApplicationContext环境 |
 
 **生命周期**
 
 定义——初始化——使用——销毁
+
+**配置方式**
+
+使用Scope
+
+```java
+@Bean
+@Scope("singleton")
+public MySingletonBean mySingletonBean() {
+    return new MySingletonBean();
+}
+```
 
 ##### 5、springboot启动原理
 
@@ -857,6 +1086,8 @@ Autowired
 如果上述查找的结果为空，那么会抛出异常。解决方法时，使用required=false。
 
 注解装配在默认情况下是不开启的，为了使用注解装配，我们必须在Spring配置文件中配置 <context:annotation-config/>元素（spring）。使用@Qualifier 注解和 @Autowired 通过指定应该装配哪个确切的 bean 来消除歧义。
+
+##### 怎么定义一个Spring Boot Starter
 
 ### 六、spring cloud 及微服务
 
