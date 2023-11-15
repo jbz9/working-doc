@@ -1041,6 +1041,14 @@ public MySingletonBean mySingletonBean() {
 * spring-boot-starter-data-jpa
 * spring-boot-starter-data-redis
 
+###### 怎么定义一个Starter
+
+1、定义一个工程，父工程是springboot
+
+2、写一个autoConfiguration自动配置项和一个配置类
+
+3、在resource/META-INF下，创建spring.factories文件，写入一个spring EnableAutoConfiguration，把刚刚的EnableAutoConfiguration自动配置项的全类名写上。
+
 ##### 8、springboot核心配置文件有哪些
 
 答：有application文件，有yml和properties两种格式（yml是key和value格式，properties用=号），还有bootstrap 文件
@@ -1055,7 +1063,13 @@ public MySingletonBean mySingletonBean() {
 
 ##### 11、自动装配原理
 
-答：它是通过@EnableAutoConfiguration注解去找到每个jar下的spring.factories文件，这里文件里面配置了所有加载到IOC容器里面的自动配置类的全路径，然后根据自动配置类的里面的@Configuration,@ConditionalOnClass注解来查找配置类来决定是不是加载
+答：它是基于spring的自动装配机制，也就是EnableAutoConfiguration注解
+
+①通过EnableAutoConfiguration去读取所有starter项目下的META-INF/spring.factories，读取里面所有配置类的全类名
+
+②根据Configuration、Conditional注解，进行按需加载，注册bean
+
+②spring.factories这里文件里面配置了所有加载到IOC容器里面的自动配置类的全路径，然后根据自动配置类的里面的Configuration、Conditional注解来查找注册bean
 
 ##### 12、如何指定用哪个配置文件
 
@@ -1073,9 +1087,9 @@ public MySingletonBean mySingletonBean() {
 
 答：RequestMapper用在类上或者方法上，用来映射请求的URL
 
-##### 15、介绍一下Spring Bean 的自动装配？
+##### 15、介绍一下Spring Bean 的自动注入？
 
-答：spring Bean自动装配有2种方式，一种是xml，基本不用了，一种是注解，也就是Autowired和Resource，Autowired是按照类型在IOC容器里面查找bean对象，然后赋值给变量。Resource是根据名称去查找bean，只有当找不到与名称匹配的bean才会按照类型来装配注入。
+答：spring Bean自动注入有2种方式，一种是xml，基本不用，一种是注解，也就是Autowired和Resource，Autowired是按照类型在IOC容器里面查找bean对象，然后赋值给变量。`@Autowired` 默认按照类型进行自动装配，如果存在多个匹配类型的Bean，Spring会尝试按照属性名或者使用`@Qualifier`注解的Bean进行匹配
 
 补充：
 
@@ -1086,8 +1100,6 @@ Autowired
 如果上述查找的结果为空，那么会抛出异常。解决方法时，使用required=false。
 
 注解装配在默认情况下是不开启的，为了使用注解装配，我们必须在Spring配置文件中配置 <context:annotation-config/>元素（spring）。使用@Qualifier 注解和 @Autowired 通过指定应该装配哪个确切的 bean 来消除歧义。
-
-##### 怎么定义一个Spring Boot Starter
 
 ### 六、spring cloud 及微服务
 
@@ -1557,6 +1569,8 @@ kafka不基于内存，而是基于磁盘存储，因此它堆积消息的能力
 ##### 8、集群模式和广播模式
 
 答：集群模式：是一条消息只会被消费组中的一个消费者消费；广播模式：一条消息会被消费组里的所有消费者都消费一次
+
+##### 线上消息堆积如何解决
 
 ### 九、基础知识
 
