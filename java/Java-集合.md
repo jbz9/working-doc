@@ -256,19 +256,66 @@ TreeMap是AbstractMap的子类，实现了序列接口、Cloneable、NavigableMa
 
 
 
-* 
+
 
 ### JVM
 
-JVM主要分为三部分，类加载器、运行时数据区和执行引擎。
+JVM 内存结构包含5个部分。
 
-| 名称       | 特征         | 配置参数 | 异常               |
-| ---------- | ------------ | -------- | ------------------ |
-| 方法区     | 线程共享     |          |                    |
-| 堆内存     | **线程共享** |          | OutOfMemoryError   |
-| 虚拟机栈   | 线程独占     |          | StackOverflowError |
-| 本地方法栈 | 线程独占     |          |                    |
-| 程序计数器 | 线程独占     |          |                    |
+![17004078906531700407889889.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/17004078906531700407889889.png)
+
+| 名称          | 特征         | 配置参数 | 异常               | 作用                                                 |
+| ------------- | ------------ | -------- | ------------------ | ---------------------------------------------------- |
+| 方法区/元空间 | 线程共享     |          |                    | 存储：类的信息、静态变量、常量、                     |
+| 堆内存        | **线程共享** |          | OutOfMemoryError   | 存储：对象实例、字符串常量池                         |
+| 虚拟机栈      | 线程独占     |          | StackOverflowError | 方法运行产生的虚拟机栈，存储：局部变量、方法出口信息 |
+| 本地方法栈    | 线程独占     |          |                    | 本地方法产生的虚拟机栈                               |
+| 程序计数器    | 线程独占     |          |                    | 当前线程执行的字节码指令地址                         |
+
+public class MemoryExample {
+    // 静态变量存储在方法区
+    private static String staticVariable = "Static Variable";
+
+```java
+// 实例变量存储在堆中
+private String instanceVariable;
+
+public MemoryExample(String instanceVariable) {
+    // 构造方法中的局部变量存储在虚拟机栈中
+    this.instanceVariable = instanceVariable;
+}
+
+public void exampleMethod() {
+    // 方法中的局部变量也存储在虚拟机栈中
+    int localVar = 42;
+
+    // 操作数栈中存储计算的中间结果
+    int result = localVar * 2;
+
+    // 方法中调用其他方法，会创建新的栈帧
+    otherMethod();
+}
+
+private void otherMethod() {
+    // 其他方法的局部变量
+    String localString = "Local String";
+
+    // 程序计数器存储当前线程执行的字节码指令地址
+    int address = 0;
+
+    // 本地方法调用，相关信息存储在本地方法栈中
+    nativeMethod();
+}
+
+private native void nativeMethod();
+
+public static void main(String[] args) {
+    // main 方法执行时，会创建主线程的虚拟机栈
+    MemoryExample example = new MemoryExample("Hello, Memory!");
+    example.exampleMethod();
+}
+```
+}
 
 **方法区（Java1.7）：**也被成为永久代，存放类的信息（类的字节码、类的结构）、常量、静态变量等，**字符串常量就在方法区中。**
 
@@ -826,15 +873,7 @@ package org.apache.commons.io;
 FileUtils.copyDirectory(sourceDirectory, destinationDirectory);
 ```
 
-#### 并发
-
-优点：提高执行效率，由于I/O等情况阻塞，单个任务并不能充分利用CPU时间。java中多线程是抢占式的，这意味着一个任务随时可能中断并切换到其它任务。通过并发编程的形式可以将多核CPU的计算能力发挥到极致，性能得到提升。
-
-缺点：频繁的上下文切换；编程容易造成死锁，即线程安全问题，在多线程下代码执行的结果与预期正确的结果不一致，该代码就是线程不安全的，否则则是线程安全的。
-
-1. 悲观锁
-
-   假设最坏的情景，
+1. 
 
 #### 异常
 
