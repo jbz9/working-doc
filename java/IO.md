@@ -6,9 +6,7 @@ fd：file descriptor 文件描述符，是一个从0开始的无符号整数，�
 
 IO操作：read、write
 
-## IO模型
-
-
+## IO分类
 
 ### 阻塞IO
 
@@ -66,7 +64,7 @@ select、poll、epoll的区别
 
 ### 同步和非同步
 
-
+## IO模型
 
 ### BIO
 

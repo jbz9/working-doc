@@ -1,30 +1,32 @@
-## JVM  
+## 1、JVM  
 
-### 1. JVM概念  
+### JVM概念  
 
-Java 虚拟机，运行在操作系统上。hotSpot
+Java 虚拟机，运行在操作系统上。JVM负责将Java源代码编译成字节码，并在程序运行时去执行这些字节码。
 
-#### 1. 内存溢出OOM、内存泄漏、栈溢出
-
-##### 1. **OutOfMemoryError**
-
-OOM异常，java.lang.OutOfMemoryError: PermGen space
-
-### 2. JVM内存结构
+### JVM内存结构
 
 <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16502903438581650290343033.png" style="zoom:67%;" />
 
 
 
-#### 1. **Stack 栈**
+![1700753669337Java内存模型-JVM内存结构.drawio.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/1700753669337Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B-JVM%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.drawio.png)
 
-每一个方法执行都会产生一个Stack,用来保存方法的一些信息，局部变量表，操作数帧，方法出口、动态链接。Stack 栈随着方法的调用结束而销毁。
+JVM内存结构：
 
+| 名称          | 特征         | 配置参数 | 异常               | 作用                                                 |
+| ------------- | ------------ | -------- | ------------------ | ---------------------------------------------------- |
+| 方法区/元空间 | 线程共享     |          |                    | 存储：类的信息、静态变量、常量、                     |
+| 堆内存        | **线程共享** |          | OutOfMemoryError   | 存储：对象实例、字符串常量池                         |
+| 虚拟机栈      | 线程独占     |          | StackOverflowError | 方法运行产生的虚拟机栈，存储：局部变量、方法出口信息 |
+| 本地方法栈    | 线程独占     |          |                    | 本地方法产生的虚拟机栈                               |
+| 程序计数器    | 线程独占     |          |                    | 当前线程执行的字节码指令地址                         |
 
+**Stack 栈**
+
+**每一个方法执行都会产生一个Stack,用来保存方法的一些信息，局部变量表，操作数帧，方法出口、动态链接。**Stack 栈随着方法的调用结束而销毁。
 
 Java栈中存放的是一个个的栈帧，每个栈帧对应一个被调用的方法，在栈帧中包括局部变量表(Local Variables)、操作数栈(Operand Stack)、指向当前方法所属的类的运行时常量池（运行时常量池的概念在方法区部分会谈到）的引用(Reference to runtime constant pool)、方法返回地址(Return Address)和一些额外的附加信息。当线程执行一个方法时，就会随之创建一个对应的栈帧，并将建立的栈帧压栈。当方法执行完毕之后，便会将栈帧出栈。
-
-
 
 栈内存的大小可以有两种设置，固定值和根据线程需要动态增长。
 在JVM栈这个数据区可能会发生抛出两种错误: 
@@ -33,17 +35,19 @@ Java栈中存放的是一个个的栈帧，每个栈帧对应一个被调用的�
 
 ② OutOfMemoryError 出现在栈内存设置成动态增长的时候，当JVM尝试申请的内存大小超过了其可用内存时会抛出这个错误。
 
-
-
-#### 2  **Heap 堆**
+**Heap 堆**
 
 是所有线程共享的内存区域，用来存放**对象和数组**，以及**字符串常量池**。也是JVM中最大的内存空间，进行JVM调优（Xms、Xmx）也是主要针对这块内存区域，它里面又分为新生代、老年代、和元空间，GC垃圾回收用到的复制、标记算法也是主要针对这一块。
 
-#### 3. Native Method Stack **本地方法栈**
+* 新生代：新生代还被进一步划分为 Eden 区、From Survivor 0、To Survivor 1 区，默认的虚拟机配置比例是Eden：from ：to = 8:1:1
+  * Eden区：伊甸园 
+  * Survivor（sərˈvaɪvər） 0（幸存）
+  * Survivor 1
+* 老年代
 
-用来管理本地方法的调用，它可以通过本地方法接口来访问JVM运行内存的数据。
+**Native Method Stack 本地方法栈**
 
-
+**本地方法调用产生的栈帧**，它可以通过本地方法接口来访问JVM运行内存的数据。
 
 当某个线程调用一个本地方法时，它就进入了一个全新的并且不再受虚拟机限制的世界。它和虚拟机拥有同样的权限。
 
@@ -51,183 +55,139 @@ Java栈中存放的是一个个的栈帧，每个栈帧对应一个被调用的�
 - 它甚至可以直接使用本地处理器中的寄存器
 - 直接从本地内存的堆中分配任意数量的内存。
 
-#### 4. PC Register 程序计数器
+**PC Register 程序计数器**
 
-是线程私有的，用来记录线程的执行行号
+记录线程的执行的内存地址
 
-#### 5. MetaSpace **元空间** JDK8
+**MetaSpace 元空间 JDK8**
 
-纯粹类的元数据信息，元空间处在本地内存当中，替换了JDK7的永久代，为了避免OOM异常
+存储类的元数据信息，元空间使用的是本地内存，不是JVM内存，它替换了JDK7的永久代，为了避免OOM异常
 
-#### 5. Method Area **方法区** JDK7
+**Method Area 方法区 JDK7**
 
 存储类的信息，常量、静态变量。方法区也就是永久代（Permanet Generation），Java7及以前版本的Hotspot中方法区位于永久代中。
 
 方法区是规范，永久代是Hotspot针对该规范进行的实现
 
-
-
-### 3. 类加载器
-
-**一个类只能有且只有一个类加载器对其进行加载**
-
-如何保证只有一个类加载器加载呢？
-
-#### **双亲委派机制**
-
-它们之间的关系：启动类加载器（高）-扩展类加载器（中）—应用类加载器（低）
-
-加载器顺序：
-
-如果一个类加载器收到类加载的请求，那么首先它自己不会去加载这个请求，而是会把这个请求委托给它的父级加载器去加载，同样它的父级也是这样，那么所有的请求最会到**顶层的启动类加载器首先进行加载**，如果它无法进行加载，那么请求就会层层下发给它的子级加载器进行加载。
+实例
 
 ```java
-/**
- * Project Name : learn
- * File Name    : Hello
- * Package Name : com.jiang.loader
- * Date         : 2022-04-19 16:40
- * Author       : jbz
- */
-package com.jiang.learn.loader;
+public class MemoryExample {
+  // 静态变量存储在方法区
+  private static String staticVariable = "Static Variable";
+// 实例变量存储在堆中
+private String instanceVariable;
 
-import java.net.URL;
-import java.net.URLClassLoader;
-
-/**
- * @author : jbz
- * @ClassName : Hello
- * @Date : 2022-04-19 16:40
- * @Description :
- */
-public class Hello {
-
-    public static void main(String[] args) {
-        Hello hello = new Hello();
-        //app loader
-        System.out.println(hello.getClass().getClassLoader());
-				//sun.misc.Launcher$AppClassLoader@18b4aac2
-      
-        // bootstrap loader
-        URL[] urls = sun.misc.Launcher.getBootstrapClassPath().getURLs();
-        for (URL url : urls) {
-            System.out.println(url);
-        }
-				//file:/E:/develop/java/jdk1.8.0_92/jre/lib/rt.jar
-      
-        //extension loader
-        URL[] extensions = ((URLClassLoader) ClassLoader.getSystemClassLoader().getParent()).getURLs();
-        for (URL url : extensions) {
-            System.out.println(url);
-        }
-      //file:/E:/develop/java/jdk1.8.0_92/jre/lib/ext/zipfs.jar
-    }
-
+public MemoryExample(String instanceVariable) {
+    // 构造方法中的局部变量存储在虚拟机栈中
+    this.instanceVariable = instanceVariable;
 }
+
+public void exampleMethod() {
+    // 方法中的局部变量也存储在虚拟机栈中
+    int localVar = 42;
+
+    // 操作数栈中存储计算的中间结果
+    int result = localVar * 2;
+
+    // 方法中调用其他方法，会创建新的栈帧
+    otherMethod();
+}
+
+private void otherMethod() {
+    // 其他方法的局部变量
+    String localString = "Local String";
+
+    // 程序计数器存储当前线程执行的字节码指令地址
+    int address = 0;
+
+    // 本地方法调用，相关信息存储在本地方法栈中
+    nativeMethod();
+}
+
+private native void nativeMethod();
+
+public static void main(String[] args) {
+    // main 方法执行时，会创建主线程的虚拟机栈
+    MemoryExample example = new MemoryExample("Hello, Memory!");
+    example.exampleMethod();
+}
+} 
 ```
 
-**最终加载顺序：启动类加载器 ->扩展类加载器 ->应用类加载器**
+## 2、垃圾回收机制
 
-* 启动类加载器-**BootstrapClassLoader**：负责加载 jre/lib目录下的jar包和类
-* 扩展类加载器-**ExtensionClassLoader**：主要负责加载目录 jre/lib/ext 目录下的jar包和类
-* 应用程序类加载器-**AppClassLoader**：负责加载当前应用classpath下的所有jar包和类。
+### 调优命令有哪些
 
-<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1650358310129image-20201014151857832.png" style="zoom:50%;" />
-
-
-
-一个类的完整生命周期
-
-<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16503596092301650359609162.png" style="zoom:50%;" />
-
-① 类加载器
-
-如果 **JVM** 想要执行这个 **.class** 文件，我们需要将其装进一个 **类加载器** 中，它就像一个搬运工一样，会把所有的 **.class** 文件全部搬进JVM里面
-
-
-
-### 4. JVM 调优
-
-#### 4.1 调优命令有哪些
-
-##### jps
+**jps**
 
 JVM Process Status 显示JVM进程
 
-##### jstat
+**jstat**
 
 JVM statistics Monitoring JVM监控工具，统计信息监控
 
-##### jmap
+**jmap**
 
 JVM Memory Map 生成heap dump文件
 
-##### jstack
+**jstack**
 
 生成JVM当前时刻的线程快照
 
-##### jinfo
+**jinfo**
 
 JVM Configuration info  查看JVM运行参数。
 
-#### 4.2 Minor GC与Full GC分别在什么时候发生？
+### Minor GC与Full GC分别在什么时候发生？
 
 Minor GC也叫young GC，新生代内存不够的时候发生YGC
 
 Full GC 老年代内存不够的时候发生Full GC
 
-#### 4.3 需要JVM调优的情况
+### 需要JVM调优的情况
+
+一般情况下不需要调优，只有如果出现了问题，比如出现OOM内存不足异常，频繁出现FUll GC 或者以及Full GC时间比较长,以及如果项目使用本地缓存，而且本地缓存比较大，也需要调整XMS和XMX初始内存和最大内存的大小，还有，**在实际调整的时候，最好还是通过监控工具比如JVisualVM、Prometheus来监控JVM进程，动态调整观察JVM的情况**
 
 * 项目中用到了本地缓存，而且本地缓存的内存用的比较大
 * FUll GC 比较频繁
 * Full GC的时间比较长（超过1秒）
 * 堆内存的老年代
 
-#### 4.4 垃圾回收算法
+### 垃圾回收算法
 
-##### 标记-清除算法（Mark-Sweep）
+**①标记-清除算法 (Mark-Sweep Algorithm):**
 
-由2个阶段组成
+- **标记阶段：** **遍历所有的可达对象，并给对象上打上标记**，标记这些对象是活动的（reachable）。
+- **清除阶段：** 遍历整个堆Heap，**清除未标记的对象**，即认为这些对象是垃圾，将它们回收释放内存。
 
-①标记阶段：标记已经死亡的对象
+​    **优点：** 不需要额外的内存空间。
 
-②清理阶段：清理死亡的对象
+​    **缺点：** 会产生内存碎片，清除阶段可能导致停顿时间较长。
 
-<img src="https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16550907057141655090705512.png"  />
+**②标记-整理算法 (Mark-Compact Algorithm)**：
 
-缺点：造成很多的内存碎片，当大对象需要被分配内存时，可能找不到合适的内存，导致再次触发GC
+- **标记阶段（Marking Phase）：** 同标记-清除算法，标记所有可达对象。
+- **整理阶段（Compact Phase）：** 将所有活动对象向一端移动，然后清理掉其余的空间。
 
-##### 标记-整理算法（Mark-Sweep）
+  **优点：** 避免了内存碎片，相对于标记-清除算法有更好的空间利用。
 
-①标记阶段：标记出的对象
+  **缺点：** 需要额外的内存空间来进行整理，可能会导致内存拷贝开销。
 
-②整理阶段：移动所有存活的对象，按照内存地址依次排序
+**③复制算法 (Copying Algorithm)**：
 
-![](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16550908307181655090829774.png)
+- **划分为两个半区（Semi-spaces）：** 将堆分为两个相等大小的半区，每次只使用其中一个半区。
+- **标记-复制（Mark-Copy）：** 将活动对象标记后，将其复制到另一半区，并清理原半区。
 
-缺点：
+ **优点：** 避免了内存碎片，垃圾回收时只需要操作半区的内存。
 
-效率比较低
+  **缺点：** 需要额外的内存空间来存储活动对象。
 
-##### 复制算法
+**分代回收算法**：
 
-①将内存一分为2
+创建对象，分配到Eden区，当Eden区空间满了，就触发一次Young GC，将还在使用的对象复制到幸存区From,这样Eden被清空，以供继续存储对象，当Eden再次满了的时候，再触发一次Young GC，将Eden和幸存From区中还在被使用的对象复制到幸存区的to区，下一次，Young GC则是将Eden和To区中还在使用的对象放入到From区，这样，经过多次GC，有些对象会在From和To区经过多次复制，都没有被释放，那么到达一个阈值之后，这些对象就将放到老年代，如果老年代空间也用完，就会触发Full GC全量回收。
 
-②将存活的对象集中复制到另一块内存空间
-
-
-
-
-
-优点：
-
-效率比较高，没有内存碎片产生
-
-缺点：
-
-内存利用率低
-
-#### 4.5 垃圾回收器有哪些
+### 垃圾回收器有哪些
 
 新生代收集器：Serial、 ParNew 、 Parallel Scavenge
 
@@ -235,19 +195,33 @@ Full GC 老年代内存不够的时候发生Full GC
 
 整堆收集器： G1 ， ZGC
 
-#### 4.7 如何判断对象死亡
+### 如何判断对象死亡
 
-##### **引用计数法（Reference Counting）**
+#### **引用计数法（Reference Counting）**
 
 加1减1。如果被引用就+1；如果引用被释放就—1；如果计数器=0，就会被GC
 
-##### **可达性分析（Reachability Analysis）**
+#### **可达性分析（Reachability Analysis）**
 
-#### 4.6 调优方案
+### JVM调优方案
 
 xms(最小)、xmx（最大）、xmn（新生代大小）、NewRatio（新生代和老年代占比）、SurvivorRatio（伊甸园和幸存区占比）
 
-##### 调整内存大小
+```shell
+-Xms
+  堆内存初始容量大小（包括新生代和老年代）， 例如：-Xms 20M
+-Xmx
+  堆内存（最大）容量  例如：-Xmx 30M
+注意：建议将 -Xms 和 -Xmx 设为相同值，避免每次垃圾回收完成后JVM重新分配内存！
+-Xmn
+  新生代容量大小 例如：-Xmn 10M
+-XX SurvivorRatio
+  设置新生代中 Eden、S0、S1的比例，默认是 8:1:1 例如：-XX： SurvivorRatio=8 代表比例8：1：1
+  注：没有直接设置老年代的参数，可以通过设置 堆空间大小和新生代空间大小来控制老年代大小。
+  当Java堆内存没有存够的空间去分配实例，也无法扩展内存，将会抛出内存溢出的异常，OutOfMemoryError 
+```
+
+#### 调整内存大小
 
 场景：GC回收比较频繁
 
@@ -281,7 +255,7 @@ Java堆区用于存储Java对象实例，那么堆的大小在JVM启动时就已
 - 初始内存大小：物理电脑内存大小 / 64
 - 最大内存大小：物理电脑内存大小 / 4
 
-##### 设置GC时间
+#### 设置GC时间
 
 现象：程序间接性的卡顿
 
@@ -292,7 +266,69 @@ Java堆区用于存储Java对象实例，那么堆的大小在JVM启动时就已
  -XX:MaxGCPauseMillis 
 ```
 
-### 5. Class 文件
+### 内存溢出OOM、内存泄漏、栈溢出
+
+OOM异常（OutOfMemoryError）异常： java.lang.OutOfMemoryError: PermGen space
+
+当JVM尝试在堆中创建新的对象实例，而堆内存耗尽时，就会抛出 `OutOfMemoryError`。
+
+### OOM问题排查
+
+1、先 `ps -ef | grep 应用名称`找到进程号
+
+2、再用jstat查看GC
+
+`jstat -gcutil pid interval(ms)`
+
+3、看到的问题
+
+老年代快要被占满、full GC次数非常多；原因：老年代有需要无法被gc回收的对象，导致老年代满了
+
+<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16535381182381653538117252.png" style="zoom:50%;" />
+
+**结果说明：**
+
+S0: 新生代中Survivor space 0区已使用空间的百分比
+
+S1: 新生代中Survivor space 1区已使用空间的百分比
+
+E: 新生代已使用空间的百分比
+
+**O: 老年代已使用空间的百分比**
+
+M：元数据区使用比例
+
+CCS：压缩使用比例
+
+YGC: 从应用程序启动到当前，发生Yang GC 的次数
+
+YGCT: 从应用程序启动到当前，Yang GC所用的时间【单位秒】
+
+**FGC: 从应用程序启动到当前，发生Full GC的次数**
+
+FGCT: 从应用程序启动到当前，Full GC所用的时间
+
+GCT: 从应用程序启动到当前，用于垃圾回收的总时间【单位秒】
+
+4、使用阿里[Arthas](https://arthas.aliyun.com/zh-cn/)的查看堆栈信息
+
+5、具体使用
+
+使用Arthas dashboard命令查看详细的内存信息；
+
+dashboard
+
+使用Arthas heapdump命令查看具体的堆栈信息；
+
+heapdump /tmp/dump.hprof
+
+6、使用JDK的`VisualVM`去分析dump文件
+
+jvisualvm.exe
+
+查看类、实例数量、排名靠前的的实例
+
+### Class 文件
 
 使用JDK自带命令javap查看class文件的汇编字节码
 
@@ -451,67 +487,96 @@ Constant pool:
 }
 ```
 
-### 6. 问题排查
+### 对象一定分配在堆中吗？逃逸分析
 
-#### OOM问题排查
+不一定，有可能会发生逃逸分析。
 
-1、先 `ps -ef | grep 应用名称`找到进程号
+会根据对象的引用范围，决定是否分配到堆内存或者是栈内存
 
-2、再用jstat查看GC
+逃逸分析 Escape Analysis
 
-`jstat -gcutil pid interval(ms)`
+## 3、类加载
 
-3、看到的问题
+### 类加载器
 
-老年代快要被占满、full GC次数非常多；原因：老年代有需要无法被gc回收的对象，导致老年代满了
+类加载器（Class Loader）是Java虚拟机（JVM）的一部分，负责**将类的字节码加载到内存中，并生成对应的`Class`对象，一个类只能有且只有一个类加载器对其进行加载。**
 
-<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16535381182381653538117252.png" style="zoom:50%;" />
+### **双亲委派机制**
 
-**结果说明：**
+如何保证只有一个类加载器加载呢？双亲委派策略
 
-S0: 新生代中Survivor space 0区已使用空间的百分比
+它们之间的关系：启动类加载器（高）-扩展类加载器（中）—应用类加载器（低）
 
-S1: 新生代中Survivor space 1区已使用空间的百分比
+加载器顺序：
 
-E: 新生代已使用空间的百分比
+如果一个类加载器收到类加载的请求，那么首先它自己不会去加载这个请求，而是会把这个请求委托给它的父级加载器去加载，同样它的父级也是这样，那么所有的请求最会到**顶层的启动类加载器首先进行加载**，如果它无法进行加载，那么请求就会层层下发给它的子级加载器进行加载。
 
-**O: 老年代已使用空间的百分比**
+```java
+/**
+ * Project Name : learn
+ * File Name    : Hello
+ * Package Name : com.jiang.loader
+ * Date         : 2022-04-19 16:40
+ * Author       : jbz
+ */
+package com.jiang.learn.loader;
 
-M：元数据区使用比例
+import java.net.URL;
+import java.net.URLClassLoader;
 
-CCS：压缩使用比例
+/**
+ * @author : jbz
+ * @ClassName : Hello
+ * @Date : 2022-04-19 16:40
+ * @Description :
+ */
+public class Hello {
 
-YGC: 从应用程序启动到当前，发生Yang GC 的次数
+    public static void main(String[] args) {
+        Hello hello = new Hello();
+        //app loader
+        System.out.println(hello.getClass().getClassLoader());
+				//sun.misc.Launcher$AppClassLoader@18b4aac2
+      
+        // bootstrap loader
+        URL[] urls = sun.misc.Launcher.getBootstrapClassPath().getURLs();
+        for (URL url : urls) {
+            System.out.println(url);
+        }
+				//file:/E:/develop/java/jdk1.8.0_92/jre/lib/rt.jar
+      
+        //extension loader
+        URL[] extensions = ((URLClassLoader) ClassLoader.getSystemClassLoader().getParent()).getURLs();
+        for (URL url : extensions) {
+            System.out.println(url);
+        }
+      //file:/E:/develop/java/jdk1.8.0_92/jre/lib/ext/zipfs.jar
+    }
 
-YGCT: 从应用程序启动到当前，Yang GC所用的时间【单位秒】
+}
+```
 
-**FGC: 从应用程序启动到当前，发生Full GC的次数**
+**最终加载顺序：启动类加载器 ->扩展类加载器 ->应用类加载器**
 
-FGCT: 从应用程序启动到当前，Full GC所用的时间
+* 启动类加载器-**BootstrapClassLoader**：负责加载 jre/lib目录下的jar包和类
+* 扩展类加载器-**ExtensionClassLoader**：主要负责加载目录 jre/lib/ext 目录下的jar包和类
+* 应用程序类加载器-**AppClassLoader**：负责加载当前应用classpath下的所有jar包和类。
 
-GCT: 从应用程序启动到当前，用于垃圾回收的总时间【单位秒】
+<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/1650358310129image-20201014151857832.png" style="zoom:50%;" />
 
-4、使用阿里[Arthas](https://arthas.aliyun.com/zh-cn/)的查看堆栈信息
 
-5、具体使用
 
-使用Arthas dashboard命令查看详细的内存信息；
+一个类的完整生命周期
 
-dashboard
+<img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16503596092301650359609162.png" style="zoom:50%;" />
 
-使用Arthas heapdump命令查看具体的堆栈信息；
+① 类加载器
 
-heapdump /tmp/dump.hprof
+如果 **JVM** 想要执行这个 **.class** 文件，我们需要将其装进一个 **类加载器** 中，它就像一个搬运工一样，会把所有的 **.class** 文件全部搬进JVM里面
 
-6、使用JDK的`VisualVM`去分析dump文件
+### 类加载机制
 
-jvisualvm.exe
-
-查看类、实例数量、排名靠前的的实例
-
-### 7. 类加载机制
-
-JVM的功能：载入、执行平台无关的字节码文件。
+![1700753669337Java内存模型-JVM内存结构.drawio.png](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/1700753669337Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B-JVM%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.drawio.png)
 
 计算机只认识0和1。这意味着任何语言编写的程序最终都需要经过编译器编译成机器码才能被计算机执行。
 
@@ -613,19 +678,3 @@ static final float F = 0.52f
 **动态链接**
 
 符号引用其实是`静态`的,那么直接引用就是`动态`的. 将.class文件加载到内存中之后,jvm会将符号引用转化为代码在内存中实际的内存地址.那么这就是直接引用.也就是类加载中的`动态链接`
-
-![](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/1653807880536Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6.drawio.png)
-
-
-
-![](https://fastly.jsdelivr.net/gh/jbz9/picture@main/image/16537359088341653735908115.png)
-
-
-
-### 8. 对象一定分配在堆中吗？逃逸分析
-
-不一定，有可能会发生逃逸分析。
-
-会根据对象的引用范围，决定是否分配到堆内存或者是栈内存
-
-逃逸分析 Escape Analysis
