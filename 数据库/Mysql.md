@@ -1008,6 +1008,7 @@ InnoDB 与 MyISAM 的最大不同有两点：一是支持事务；二是 采用�
 - 如果 **version** 不对，就更新失败
 
 ```
+```sql
  <update id="updateDeposit" keyProperty="id"  parameterType="com.cloud.demo.model.Account">
         update account
         set deposit=#{deposit},
@@ -1021,6 +1022,8 @@ InnoDB 与 MyISAM 的最大不同有两点：一是支持事务；二是 采用�
         where id = #{id}
           and version = #{version}
     </update>
+```
+
 ```
 
 ##### 20、如果该表存在多个字段查询频繁，是该建立多个单列索引还是创建一个多列联合索引呢？
@@ -1080,7 +1083,7 @@ C为控制，也就是事件，用于流程的控制
 
 ##### 3、模糊查询%怎么处理
 
-答：用CONCAT函数，或者bind标签
+答：用concat函数，或者bind标签
 
 补充：
 
