@@ -117,6 +117,10 @@ public static void main(String[] args) {
 
 ## 2、垃圾回收机制
 
+### 垃圾回收器
+
+
+
 ### 调优命令有哪些
 
 **jps**
