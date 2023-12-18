@@ -150,16 +150,16 @@ microservice，是把直接的单体架构，拆分成多个子系统，这每�
 
 ### 说一下微服务组件
 
-| 组件       | springcloud          | springcloud Alibaba  | Dubbo     |
-| ---------- | -------------------- | -------------------- | --------- |
-| 注册中心   | Eureka               | nacos                | zookeeper |
-| 网关       | spring cloud gateway | spring cloud gateway |           |
-| 负载均衡   | Ribbon（被取代）     |                      |           |
-| 限流       | Hystrix              | Sentinel             |           |
-| 配置中心   | springcloud config   | Nacos config         | 无        |
-| 声明式调用 | Feign、openFeign     |                      |           |
-| 链路追踪   |                      |                      |           |
-|            |                      |                      |           |
+| 组件       | springcloud                | springcloud Alibaba  | Dubbo     |
+| ---------- | -------------------------- | -------------------- | --------- |
+| 注册中心   | Eureka、**Consul**         | nacos                | zookeeper |
+| 网关       | spring cloud gateway       | spring cloud gateway |           |
+| 负载均衡   | Ribbon（被取代）、**Zuul** |                      |           |
+| 限流       | Hystrix                    | Sentinel             |           |
+| 配置中心   | springcloud config         | Nacos config         | 无        |
+| 声明式调用 | Feign、openFeign           |                      |           |
+| 链路追踪   |                            |                      |           |
+|            |                            |                      |           |
 
 ### bootstrap.yaml
 

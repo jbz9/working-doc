@@ -4,6 +4,10 @@
 
 Java 虚拟机，运行在操作系统上。JVM负责将Java源代码编译成字节码，并在程序运行时去执行这些字节码。
 
+### JVM类型
+
+
+
 ### JVM内存结构
 
 <img src="https://cdn.jsdelivr.net/gh/jbz9/picture@main/image/16502903438581650290343033.png" style="zoom:67%;" />
@@ -119,7 +123,77 @@ public static void main(String[] args) {
 
 ### 垃圾回收器
 
+1、分为**新生代、老年代和整堆**收集器：
 
+* **新生代收集器（复制算法）：主要使用的是复制算法，Serial、ParNew、Parallel Scavenge**
+
+* **老年代收集器（标记算法）：主要使用的是标记算法，CMS（标记-清理）、Serial Old（标记-整理）、Parallel Old（标记整理）**
+
+* **整堆收集器： G1（一个Region中是标记-清除算法，2个Region之间是复制算法）**
+
+#### 新生代
+
+1. **Serial串行回收器**
+
+   * **原理：使用单线程，运行时，会停止应用程序，出现stop-the-world，实现使用的是复制算法**
+
+   * **使用：`-XX:+UseSerialGC`**
+
+   - 适用场景： 适用于小型应用和客户端应用，单线程执行垃圾收集。
+   - 特点： 简单、高效，适合单处理器环境。
+
+2. **ParNew并行回收器**
+
+   * **原理**：ParNew其实就是Serial的`多线程`版本，除了多线程之外，其它是和Serial一样的，包括Serial收集器可用的所有控制参数、收集算法、Stop The Worl、.对象分配规则、回收策略等都与Serial收集器完全一样。
+   * 使用：` -XX:+UseParNewGC ` ` -XX:ParallelGCThreads`来设置线程数
+
+   - 适用场景： 适用于多核处理器的服务器环境，关注吞吐量。
+   - 特点： 多线程并行执行垃圾收集，适合对吞吐量要求较高的应用。
+
+3. **Parallel Scavenge并行回收器**
+
+   * 使用：`-XX:+UseParallelGC`
+   * 特点：**注重提高吞吐量，适用于那些对响应时间要求相对较低，但对吞吐量要求较高的应用。**
+
+#### 老年代
+
+1. **Serial Old收集器-标记整理算法**：
+
+   * 原理：是Seriall收集器的老年代版本，它同样是一个单线程（串行）收集器，使用标记整理算法。
+
+2. **Parallel Old收集器-标记整理算法**
+
+   * 原理：是Parallel Scavenge收集器的老年代版本，使用多线程和"标记-整理”算法。
+
+3. **CMS（Concurrent Mark-Sweep）垃圾回收器**
+
+   * 原理:**真正意义上的并发收集器，能够让垃圾收集线程与用户线程（基本上）进行并发工作。使用的标记-清清除算法，**
+
+   * 使用：`-XX:+UseConcMarkSweepGC `
+
+   - **适用场景：** 适用于对低停顿时间有要求的应用，如Web应用。
+   - **特点：并发收集、低停顿，但可能会造成碎片。**垃圾回收过程中与应用程序线程并发执行，不需要停顿整个应用程序。
+
+   
+
+#### 整堆
+
+1. **G1（Garbage-First，JDK11 引入）垃圾回收器**
+   - **适用场景：** 适用于大内存、、CPU核数高、对低停顿时间有要求的应用。
+   - **特点：** 使用分代垃圾收集算法，将堆划分为多个区域，以优化吞吐量和停顿时间。
+
+2. **ZGC（Z Garbage Collector）**
+
+- **适用场景：** 适用于对停顿时间要求非常低的应用，如需要毫秒级别的响应时间。
+- **特点：** 与 CMS 中的 ParNew 和 G1 类似，ZGC 也采用标记-复制算法，不过 ZGC 对该算法做了改进。采用并发处理方式，几乎所有垃圾收集的工作都可以在应用线程的同时进行，以最小化停顿时间。
+
+要验证 `-XX:+UseSerialGC` 是否生效，可以通过 Java 虚拟机的垃圾回收日志来确认。在启动 Java 应用程序时，添加 `-XX:+PrintCommandLineFlags` 参数，这样在启动时会打印出 JVM 的配置参数。
+
+`java -XX:+UseSerialGC -XX:+PrintCommandLineFlags -jar YourApplication.jar`
+
+`stop-the-world`。它会在任何一种GC算法中发生。stop-the-world 意味着JVM因为需要执行GC而`停止`应用程序的执行。
+
+当stop-the-world 发生时，除GC所需的线程外，所有的`线程`都进入`等待`状态，直到GC任务完成。GC优化很多时候就是减少stop-the-world 的发生。对于 JVM 的调优，很多情况下也是在想办法对 Full GC 进行调优。
 
 ### 调优命令有哪些
 
@@ -201,11 +275,11 @@ Full GC 老年代内存不够的时候发生Full GC
 
 ### 如何判断对象死亡
 
-#### **引用计数法（Reference Counting）**
+#### 引用计数法（Reference Counting）
 
 加1减1。如果被引用就+1；如果引用被释放就—1；如果计数器=0，就会被GC
 
-#### **可达性分析（Reachability Analysis）**
+#### 可达性分析（Reachability Analysis）
 
 ### JVM调优方案
 
